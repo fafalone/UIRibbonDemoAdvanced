@@ -6,7 +6,7 @@ Coming very soon 🙂
 
 ![RibbonResize2](https://github.com/user-attachments/assets/412261b7-617b-46d9-8ba0-561e49d4ed7c)
 
-![image](https://github.com/user-attachments/assets/6650551c-3427-4b59-a181-c18c4862f6f8)
+![image](https://github.com/user-attachments/assets/bb2a0b09-3f27-4a3d-b01f-496a83082366)
 
 ![image](https://github.com/user-attachments/assets/202742e1-9d7e-4f4a-bcb5-8ee9e33d1c6b)
 
