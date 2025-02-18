@@ -5,7 +5,7 @@
         
         Author: Jon Johnson (fafalone)
         Project repository: https://github.com/fafalone/UIRibbonDemos
-        Last updated: 08 Feb 2025 :: Includes all classes for all demos and additional helpers.
+        Last updated: 18 Feb 2025 :: Includes all classes for all demos and additional helpers.
     */
  
 Module RibbonHelpers
@@ -49,22 +49,22 @@ Module RibbonHelpers
             Dim v As Variant
             Dim h As Byte, s As Byte, b As Byte
             Dim hsbBackground As Long
-            ' v = RGBToHSB(clrBackground)
-            ' hsbBackground = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrBackground, h, s, b)
-            hsbBackground = UI_HSB(h, s, b)
+            v = RGBToHSB(clrBackground)
+            hsbBackground = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrBackground, h, s, b)
+            ' hsbBackground = UI_HSB(h, s, b)
             
             Dim hsbHighlight As Long
-            ' v = RGBToHSB(clrHighlight)
-            ' hsbHighlight = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrHighlight, h, s, b)
-            hsbHighlight = UI_HSB(h, s, b)
+            v = RGBToHSB(clrHighlight)
+            hsbHighlight = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrHighlight, h, s, b)
+            ' hsbHighlight = UI_HSB(h, s, b)
                        
             Dim hsbText As Long
-            ' v = RGBToHSB(clrText)
-            ' hsbText = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrText, h, s, b)
-            hsbText = UI_HSB(h, s, b)
+            v = RGBToHSB(clrText)
+            hsbText = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrText, h, s, b)
+            ' hsbText = UI_HSB(h, s, b)
                        
                                    
             Dim propvarBackground As Variant
@@ -90,10 +90,10 @@ Module RibbonHelpers
             Dim v As Variant
             Dim h As Byte, s As Byte, b As Byte
             Dim hsbBackground As Long
-            ' v = RGBToHSB(clrBackground)
-            ' hsbBackground = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrBackground, h, s, b)
-            hsbBackground = UI_HSB(h, s, b)
+            v = RGBToHSB(clrBackground)
+            hsbBackground = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrBackground, h, s, b)
+            ' hsbBackground = UI_HSB(h, s, b)
             
             Dim propvarBackground As Variant
             UIInitPropertyFromUInt32 UI_PKEY_GlobalBackgroundColor, hsbBackground, propvarBackground
@@ -111,10 +111,10 @@ Module RibbonHelpers
             Dim v As Variant
             Dim h As Byte, s As Byte, b As Byte
             Dim hsbText As Long
-            ' v = RGBToHSB(clrBackground)
-            ' hsbBackground = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrText, h, s, b)
-            hsbText = UI_HSB(h, s, b)
+            v = RGBToHSB(clrText)
+            hsbText = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrText, h, s, b)
+            ' hsbText = UI_HSB(h, s, b)
             
             Dim propvarText As Variant
             UIInitPropertyFromUInt32 UI_PKEY_GlobalTextColor, hsbText, propvarText
@@ -132,10 +132,10 @@ Module RibbonHelpers
             Dim v As Variant
             Dim h As Byte, s As Byte, b As Byte
             Dim hsbHighlight As Long
-            ' v = RGBToHSB(clrBackground)
-            ' hsbBackground = UI_HSB(v(0), v(1), v(2))
-            RGBToHSB(clrHighlight, h, s, b)
-            hsbHighlight = UI_HSB(h, s, b)
+            v = RGBToHSB(clrHighlight)
+            hsbHighlight = UI_HSB(v(0), v(1), v(2))
+            ' RGBToHSB(clrHighlight, h, s, b)
+            ' hsbHighlight = UI_HSB(h, s, b)
             
             Dim propvarHighlight As Variant
             UIInitPropertyFromUInt32 UI_PKEY_GlobalHighlightColor, hsbHighlight, propvarHighlight

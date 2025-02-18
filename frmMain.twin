@@ -35,8 +35,10 @@ Class frmMain
         Last updated: 18 Feb 2025 
         
         Changelog:
+        (Version 4.0.3, 18 Feb 2025) Switched to alternate RGBToHSB algorithm from wqweto, since the 
+              original was overflowing in some cases.
         (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No
-                                     code or XML changes.
+               code or XML changes.
         (Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
         
         This project was developed exclusively in twinBASIC; the code takes advantage of new language
