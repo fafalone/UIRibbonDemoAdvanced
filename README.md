@@ -14,14 +14,14 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 -The UI Ribbon is only available in Windows 7 or newer.\
 -twinBASIC Beta 677 or newer is required.\
 -To run from the IDE, restart the compiler and build the exe before running.\
--To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form HasDC property to  False. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.\
--For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.\
+-To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form `HasDC` property to  `False`. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.\
+-For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.
 > [!IMPORTANT]
 > Some VMs like VirtualBox have broken Direct2D support so the new RichEdit DLL may crash. I'll investigate a way to check to avoid trying to load it in this case. In the mean time, if you need to use it on one of the affected VMs simply remove the DLLs from the exe folder or set `dbg_usenewrichedit` to 0.\
 Most stock versions of Windows 7 do not support color fonts, so while the Direct2D RichEdit will work, emojis won't be in color.
 
  ## Changelog
-(Version 4.0.3, 18 Feb 2025) Switched to alternate RGBToHSB algorithm from wqweto, since the original was overflowing in some cases.
+(Version 4.0.3, 18 Feb 2025) Switched to alternate `RGBToHSB` algorithm from wqweto, since the original was overflowing in some cases.
               
 (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No code or XML changes.
 
