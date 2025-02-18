@@ -13,7 +13,7 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 ## Requirements
 -The UI Ribbon is only available in Windows 7 or newer.\
 -twinBASIC Beta 677 or newer is required.\
--For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.
+-For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.\
 -To run from the IDE, restart the compiler and build the exe before running.\
 -To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form HasDC property to  False. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.
 
@@ -241,9 +241,9 @@ There's a lot of difficulty keeping this straight in the backend side. This demo
     The XML markup now does show the alternative simpler way in one line where the LabelTitle's id will be chosen automatically:\
     `<Command Name="CmdCentimeters" Symbol="IDC_CMD_CENTIMETERS" Id="16" LabelTitle="Centimeters"/>` 
     
-    - The customize QAT popup now includes items not enabled by default.
+- The customize QAT popup now includes items not enabled by default.
     
-    - If you enabled resizing on previous demos or in your own application, you may have noticed visual glitching when the forms enlarges beyond its original size.\
+- If you enabled resizing on previous demos or in your own application, you may have noticed visual glitching when the forms enlarges beyond its original size.\
     This demo provides multiple options for a fix:\
     1 (Preferred): Set the Form's `HasDC` property to False. This only affects your app if you do manual, API-based drawing directly to the Form DC and assume GDI objects selected into the DC to remain there after the DC is released and reacquired. It controls whether the form class has the `CS_OWNDC` style set.\
     2: Set the clip region to maximum: from `Form_Load` if `AutoRedraw` is False and the app supports Win8+ only, or from `Form_Resize` if it must be true or support Win7. This demo attempts to handle most scenarios, providing the code in `Form_Load` if it detects `HasDC` is True and AutoRedraw is False, and in `Form_Resize` if it detects `HasDC` and `AutoRedraw` are True.
