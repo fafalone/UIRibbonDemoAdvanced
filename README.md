@@ -18,7 +18,9 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 -To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form HasDC property to  False. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.
 
  ## Changelog
- (Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
+(Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No code or XML changes.
+
+(Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
 
  ## New Ribbon Features
 
