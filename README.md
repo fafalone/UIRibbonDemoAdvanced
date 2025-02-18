@@ -18,6 +18,8 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 -To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form HasDC property to  False. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.
 
  ## Changelog
+(Version 4.0.3, 18 Feb 2025) Switched to alternate RGBToHSB algorithm from wqweto, since the original was overflowing in some cases.
+              
 (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No code or XML changes.
 
 (Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
@@ -165,7 +167,7 @@ End If
 -The Activate Context buttons are highlighted by controlling their UI_PKEY_BooleanValue properties. We handle it in Update Properties so the initial context of 1 is  shown as enabled on startup, then explicitly set them with SetUiCommandProperty when one is clicked.
 
 > [!NOTE]
-> Some of these features use the EN_CHANGE notification, and it's worth noting serious problems with the documentation for this. First, to receive it at all, you need to enable it by including ENM_CHANGE in the EM_SETEVENTMASK message. But then, you don't receive it through WM_NOTIFY as documented, you receive it through WM_COMMAND, and this is *not* the documented RichEdit version of EN_CHANGE, it's the standard edit control version: lParam contains a handle to the control, not a pointer to a CHANGENOTIFY type.
+> Some of these features use the `EN_CHANGE` notification, and it's worth noting serious problems with the documentation for this. First, to receive it at all, you need to enable it by including `ENM_CHANGE` in the `EM_SETEVENTMASK` message. But then, you don't receive it through `WM_NOTIFY` as documented, you receive it through `WM_COMMAND`, and this is *not* the documented RichEdit version of `EN_CHANGE`, it's the standard edit control version: lParam contains a handle to the control, not a pointer to a `CHANGENOTIFY` type.
 
 ### Quick Access Toolbar images
 As was mentioned for the Scaling Policies, in some cases you may want to associate images with commands even when they're not shown by default. Adding groups and some  commands to the QAT is another one of those cases. In previous demos, you'd see a blank square in many cases. But now groups and commands have been updated to in all but a few cases have images associated with them in the QAT.
@@ -223,7 +225,7 @@ stream.Commit(STGC_DEFAULT)
 
 ### Real MRU List
 The New/Open/Save/SaveAs buttons are now functional, so the MRU list has been reworked to also be functional with actual files (so note it will be blank at first).\
-While a basic MRU is straightforward, pinning support was difficult to add. Whether a file has been pinned is first set when the MRU is loaded in the Update Properties call for `IDC_RECENTITEMS`, which occurs every time the File menu is opened. To determine whether it's changed, we have to look at the Command Execute event; IDC_RECENTITEMS gets an execute event with  UI_PKEY_RecentItems; this gives access to an array of IUISimplePropertySet implementing interfaces that contain the current values, not the ones set when initializing these items in the Update routine. That event is fired whenever the file menu is closed after a click, including pinning buttons, in Recent Items. There we can compare it to what we initially loaded to determine if the pinned status has changed for any item. If it has, we rewrite the MRU in the registry, so it reflects the new status the next time Update is called when the File menu is shown.
+While a basic MRU is straightforward, pinning support was difficult to add. Whether a file has been pinned is first set when the MRU is loaded in the Update Properties call for `IDC_RECENTITEMS`, which occurs every time the File menu is opened. To determine whether it's changed, we have to look at the Command Execute event; `IDC_RECENTITEMS` gets an execute event with  `UI_PKEY_RecentItems`; this gives access to an array of `IUISimplePropertySet` implementing interfaces that contain the current values, not the ones set when initializing these items in the Update routine. That event is fired whenever the file menu is closed after a click, including pinning buttons, in Recent Items. There we can compare it to what we initially loaded to determine if the pinned status has changed for any item. If it has, we rewrite the MRU in the registry, so it reflects the new status the next time Update is called when the File menu is shown.
 
 ![image](https://github.com/user-attachments/assets/d2e05479-c99e-43c9-a764-8b4e8faf130c)
  
