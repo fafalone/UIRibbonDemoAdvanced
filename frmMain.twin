@@ -32,10 +32,12 @@ Class frmMain
         Project repository: https://github.com/fafalone/UIRibbonDemoAdvanced (this project)
                             https://github.com/fafalone/UIRibbonDemos (earlier ribbon demos)
         License: MIT License, see LICENCE.md for more info.
-        Last updated: 17 Feb 2025 
+        Last updated: 18 Feb 2025 
         
         Changelog:
-         (Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
+        (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No
+                                     code or XML changes.
+        (Version 4.0.1, 17 Feb 2025) Initial release of Advanced demo.
         
         This project was developed exclusively in twinBASIC; the code takes advantage of new language
         features wheverever beneficial. It is possible to backport these techniques to use the ribbon
@@ -173,6 +175,8 @@ Class frmMain
          
         -The UI Ribbon is a Windows 7 and newer feature.
         
+        -To run from the IDE, restart the compiler and build the exe first.
+        
         -To avoid visual glitches when controls are moved/sized on a form containing a ribbon,
          currently you must set the Form's HasDC property to False (recommended), or ensure the
          clip region adjusting code from Form_Load is included (will not work on Windows 7). If
@@ -262,10 +266,11 @@ Class frmMain
     Private Const szHelpMessage = "This is the advanced level Windows UI Ribbon Framework Demo, created " & _
                                   "by Jon Johnson based on the C/C++ Ribbon projects from the Windows 7 SDK, " & _
                                   "<a href=""http://blogs.microsoft.co.il/arik/2011/06/03/ribbon-with-c-part-1-introduction-to-the-windows-ribbon-framework/"">Arik Poznanski</a> on blogs.microsoft.co.il, " & _
-                                  "<a href=""https://www.codeproject.com/Articles/119319/Windows-Ribbon-Framework-in-Win32-C-Application"">Stephen Wiria</a> on CodeProject, and " & _
-                                  "<a href=""https://www.codeproject.com/Articles/160542/Windows-7-Goodies-in-C-Introduction-to-the-Ribbon"">Michael Dunn</a> on CodeProject." & vbcrlf & vbcrlf & _
+                                  "<a href=""https://www.codeproject.com/Articles/119319/Windows-Ribbon-Framework-in-Win32-C-Application"">Stephen Wiria</a> on CodeProject, " & _
+                                  "<a href=""https://www.codeproject.com/Articles/160542/Windows-7-Goodies-in-C-Introduction-to-the-Ribbon"">Michael Dunn</a> on CodeProject, and " & _
+                                  "the open source project <a href=""https://github.com/stefankueng/BowPad"">BowPad</a>." & vbcrlf & vbcrlf & _
                                   "For the readme, filing bug reports, original source, and more Ribbon demos for twinBASIC, visit the project's GitHub repository:" & vbcrlf & _
-                                  "<a href=""https://github.com/fafalone/UIRibbonDemos"">https://github.com/fafalone/UIRibbonDemos</a>"
+                                  "<a href=""https://github.com/fafalone/UIRibbonDemoAdvanced"">https://github.com/fafalone/UIRibbonDemoAdvanced</a>"
     Private Const szHelpFooter = "Copyright ©2023-2025 Jon Johnson. Licensed under the MIT License. See code or repository for more  information."
     Private Const szHelpIconRes = "101"
     

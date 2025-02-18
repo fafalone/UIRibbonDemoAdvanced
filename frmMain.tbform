@@ -5,7 +5,7 @@
 		"AutoRedraw": false,
 		"BackColor": -2147483633,
 		"BorderStyle": "vbSizable",
-		"Caption": "Windows UI Framework - Advanced Demo",
+		"Caption": "Windows Ribbon UI Framework Demo",
 		"ClipControls": true,
 		"ControlBox": true,
 		"DrawMode": "vbCopyPen",
@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3796931433,
+		"__lastUpdateMarker": 1571978011,
 		"_children": [
 			{
 				"Alignment": "vbLeftJustify",
