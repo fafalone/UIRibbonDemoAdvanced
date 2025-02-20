@@ -4,12 +4,12 @@
     <Command Name="cmdApplicationMenu" Id="600"/>
     <Command Name="cmdTabMain" Symbol="IDC_TABMAIN" Id="1001">
       <Command.LabelTitle>
-        <String Id="1001">Main</String>
+        <String Id="1101">Main</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdGroupMain" Id="1002">
       <Command.LabelTitle>
-        <String Id="1002">Context Tabs</String>
+        <String Id="1102">Context Tabs</String>
       </Command.LabelTitle>
       <Command.SmallImages>
         <Image Id="969">Res/Open_S096.bmp</Image>
@@ -20,32 +20,32 @@
     </Command>
     <Command Name="cmdTabGroupTableTools" Symbol="IDC_TABTABLE" Id="1003">
       <Command.LabelTitle>
-        <String Id="1003">Table Tools</String>
+        <String Id="1103">Table Tools</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdTabDesign" Symbol="IDC_TABDESIGN" Id="1004">
       <Command.LabelTitle>
-        <String Id="1004">Design</String>
+        <String Id="1104">Design</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdTabLayout" Symbol="IDC_TABLAYOUT" Id="1005">
       <Command.LabelTitle>
-        <String Id="1005">Layout</String>
+        <String Id="1105">Layout</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdGroupDesign" Id="1006">
       <Command.LabelTitle>
-        <String Id="1006">Design Group</String>
+        <String Id="1106">Design Group</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdGroupLayout" Id="1007">
       <Command.LabelTitle>
-        <String Id="1007">Layout Group</String>
+        <String Id="1107">Layout Group</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdButtonSelect" Symbol="IDC_SELECT" Id="1050">
       <Command.LabelTitle>
-        <String Id="1050">Show table tools</String>
+        <String Id="1150">Show table tools</String>
       </Command.LabelTitle>
       <Command.LabelDescription>
         <String Id="1051">Simulates selecting a table</String>
@@ -62,7 +62,7 @@
     </Command>
     <Command Name="cmdButtonUnselect" Symbol="IDC_UNSELECT" Id="1060">
       <Command.LabelTitle>
-        <String Id="1060">Hide table tools</String>
+        <String Id="1160">Hide table tools</String>
       </Command.LabelTitle>
       <Command.LabelDescription>
         <String Id="1061">Simulates unselecting a table</String>
@@ -79,7 +79,7 @@
     </Command>
     <Command Name="cmdButtonDesign1" Symbol="IDC_DESIGN1" Id="1010">
       <Command.LabelTitle>
-        <String Id="1010">Design 1</String>
+        <String Id="1110">Design 1</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="110">Res/DropA32.bmp</Image>
@@ -87,7 +87,7 @@
     </Command>
     <Command Name="cmdButtonDesign2" Symbol="IDC_DESIGN2" Id="1011">
       <Command.LabelTitle>
-        <String Id="1011">Design 2</String>
+        <String Id="1111">Design 2</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="111">Res/DropB32.bmp</Image>
@@ -103,7 +103,7 @@
     </Command>
     <Command Name="cmdButtonLayout1" Symbol="IDC_LAYOUT1" Id="1013">
       <Command.LabelTitle>
-        <String Id="1013">Layout 1</String>
+        <String Id="1113">Layout 1</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="113">Res/DropA32.bmp</Image>
@@ -111,7 +111,7 @@
     </Command>
     <Command Name="cmdButtonLayout2" Symbol="IDC_LAYOUT2" Id="1014">
       <Command.LabelTitle>
-        <String Id="1014">Layout 2</String>
+        <String Id="1114">Layout 2</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="114">Res/DropB32.bmp</Image>
@@ -124,12 +124,12 @@
     </Command>
     <Command Name="cmdButtonsGroup" Id="2000">
       <Command.LabelTitle>
-        <String Id="2000">Buttons</String>
+        <String Id="2100">Buttons</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdDropDownColorPickerGroup" Id="2001">
       <Command.LabelTitle>
-        <String Id="2001">Color pickers</String>
+        <String Id="2101">Color pickers</String>
       </Command.LabelTitle>
       <Command.SmallImages>
         <Image Id="961">Res/PaintDrawing_S096.bmp</Image>
@@ -140,7 +140,7 @@
     </Command>
     <Command Name="cmdDropDownColorPickerThemeColors" Symbol="IDC_COLORTHEME" Id="2002">
       <Command.LabelTitle>
-        <String Id="2002">Theme Colors</String>
+        <String Id="2102">Theme Colors</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="202">Res/Colors32.bmp</Image>
@@ -148,7 +148,7 @@
     </Command>
     <Command Name="cmdDropDownColorPickerStandardColors" Symbol="IDC_COLORSTD" Id="2003">
       <Command.LabelTitle>
-        <String Id="2003">Standard Colors</String>
+        <String Id="2103">Standard Colors</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="203">Res/Colors32.bmp</Image>
@@ -156,15 +156,15 @@
     </Command>
     <Command Name="cmdDropDownColorPickerHighlightColors" Symbol="IDC_CLRHILITE" Id="204">
       <Command.LabelTitle>
-        <String Id="2004">Highlight Colors</String>
+        <String Id="2104">Highlight Colors</String>
       </Command.LabelTitle>
       <Command.LargeImages>
-        <Image Id="204">Res/Colors32.bmp</Image>
+        <Image Id="2105">Res/Colors32.bmp</Image>
       </Command.LargeImages>
     </Command>
     <Command Name="cmdButtonListColors" Symbol="IDC_LISTCOLORS" Id="2006">
       <Command.LabelTitle>
-        <String Id="2006">List Colors</String>
+        <String Id="2106">List Colors</String>
       </Command.LabelTitle>
       <Command.LargeImages>
         <Image Id="206">Res/Open32.bmp</Image>
@@ -172,7 +172,7 @@
     </Command>
     <Command Name="cmdButtonNew" Symbol="IDC_NEW" Id="7001">
       <Command.LabelTitle>
-        <String Id="7001">New</String>
+        <String Id="7101">New</String>
       </Command.LabelTitle>
       <Command.LabelDescription>
         <String Id="7002">Create new fizzbuzz</String>
@@ -192,16 +192,16 @@
     </Command>
     <Command Name="cmdButtonOpen" Symbol="IDC_OPEN" Id="8000">
       <Command.LabelTitle>
-        <String Id="8000">Open</String>
+        <String Id="8100">Open</String>
       </Command.LabelTitle>
       <Command.LabelDescription>
-        <String Id="8001">Open a file</String>
+        <String Id="8101">Open a file</String>
       </Command.LabelDescription>
       <Command.TooltipTitle>
-        <String Id="8002">Open (Ctrl+O)</String>
+        <String Id="8102">Open (Ctrl+O)</String>
       </Command.TooltipTitle>
       <Command.TooltipDescription>
-        <String Id="8003">Opens an existing file</String>
+        <String Id="8103">Opens an existing file</String>
       </Command.TooltipDescription>
       <Command.SmallImages>
         <Image Id="801">Res/Open16.bmp</Image>
@@ -635,7 +635,7 @@
         <String Id="7209">Delete</String>
       </Command.LabelTitle>
       <Command.LargeImages>
-        <Image Id="7259">res/OpenHH.bmp</Image>
+        <Image Id="7259">res/delete.bmp</Image>
       </Command.LargeImages>
     </Command>
     <Command Name="cmdUndo" Comment="Button #2" Symbol="IDC_UNDO" Id="21161">
@@ -907,6 +907,45 @@
         <Image Id="3741" MinDPI="144">Res/Find_S144.bmp</Image>
         <Image Id="3742" MinDPI="192">Res/Find_S192.bmp</Image>
       </Command.SmallImages>
+    </Command>
+    <Command Name="CmdFind2" Symbol="IDC_FIND2" Id="4560">
+      <Command.LabelTitle>
+        <String Id="4561">Find</String>
+      </Command.LabelTitle>
+      <Command.TooltipTitle>
+        <String Id="4562">Find (Ctrl+F)</String>
+      </Command.TooltipTitle>
+      <Command.TooltipDescription>
+        <String Id="4563">Find text in the document.</String>
+      </Command.TooltipDescription>
+      <Command.SmallImages>
+        <Image Id="4564">Res/Find3_S096.bmp</Image>
+        <Image Id="4565" MinDPI="120">Res/Find3_S120.bmp</Image>
+        <Image Id="4566" MinDPI="144">Res/Find3_S144.bmp</Image>
+        <Image Id="4567" MinDPI="192">Res/Find3_S192.bmp</Image>
+      </Command.SmallImages>
+    </Command>
+    <Command Name="cmdFindUp" Symbol="IDC_FINDUP" Id="4570">
+      <Command.LabelTitle>
+        <String Id="4571">Search up</String>
+      </Command.LabelTitle>
+      <Command.TooltipTitle>
+        <String Id="4572">Search up</String>
+      </Command.TooltipTitle>
+      <Command.TooltipDescription>
+        <String Id="4573">Search up instead of down.</String>
+      </Command.TooltipDescription>
+      <Command.SmallImages>
+        <Image Id="4574">Res/Up_S096.bmp</Image>
+        <Image Id="4575" MinDPI="120">Res/Up_S120.bmp</Image>
+        <Image Id="4576" MinDPI="144">Res/Up_S144.bmp</Image>
+        <Image Id="4577" MinDPI="192">Res/Up_S192.bmp</Image>
+      </Command.SmallImages>
+    </Command>
+    <Command Name="cmdFindCombo" Symbol="IDC_FINDCOMBO" Id="430">
+      <Command.LabelTitle>
+        <String Id="431">Find</String>
+      </Command.LabelTitle>
     </Command>
     <Command Name="CmdReplace" Symbol="IDC_REPLACE" Id="3743">
       <Command.LabelTitle>
@@ -1693,6 +1732,28 @@
             <Button CommandName="cmdRedo"/>
           </MenuGroup>
         </MiniToolbar>
+      <MiniToolbar Name="MiniToolbar4">
+        <MenuGroup Class="MajorItems">
+          <FontControl CommandName="cmdRichFont"/>
+          <Button CommandName="cmdButtonNew" />
+          <Button CommandName="cmdButtonOpen" />
+          <Button CommandName="CmdSaveButton" />
+        </MenuGroup>
+        <MenuGroup>
+            <Button CommandName="CmdSelectAll"/>
+            <SplitButton CommandName="CmdInsertPictureMore">
+              <SplitButton.ButtonItem>
+                <Button CommandName="CmdInsertPicture"/>
+              </SplitButton.ButtonItem>
+              <Button CommandName="CmdInsertPicture"/>
+              <Button CommandName="CmdChangePicture"/>
+              <Button CommandName="CmdResizePicture"/>
+            </SplitButton>
+            <ComboBox CommandName="cmdFindCombo" IsEditable="true"/>
+            <Button CommandName="CmdFind2"/>
+            <ToggleButton CommandName="cmdFindUp"/>
+          </MenuGroup>
+        </MiniToolbar>
       </ContextPopup.MiniToolbars>
       <ContextPopup.ContextMenus>
         <ContextMenu Name="ContextMenu1">
@@ -1719,7 +1780,7 @@
             <Button CommandName="cmdRedo"/>
           </MenuGroup>
         </ContextMenu>
-        <ContextMenu Name="ContextMenu4">
+        <ContextMenu Name="ContextMenu4"> 
           <MenuGroup>
             <Button CommandName="cmdCut"/>
             <Button CommandName="cmdCopy"/>
@@ -1736,7 +1797,7 @@
         </ContextMenu>
       </ContextPopup.ContextMenus>
       <ContextPopup.ContextMaps>
-        <ContextMap CommandName="cmdContextMap1" ContextMenu="ContextMenu1"/>
+        <ContextMap CommandName="cmdContextMap1" ContextMenu="ContextMenu1" MiniToolbar="MiniToolbar4"/>
         <ContextMap CommandName="cmdContextMap2" ContextMenu="ContextMenu2" MiniToolbar="MiniToolbar2"/>
         <ContextMap CommandName="cmdContextMap3" MiniToolbar="MiniToolbar3"/>
         <ContextMap CommandName="cmdContextMap4" ContextMenu="ContextMenu4"/>

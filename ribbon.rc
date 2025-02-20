@@ -618,7 +618,7 @@ BEGIN
     IDC_DELETE_LabelTitle_RESID L"Delete" /* LabelTitle IDC_DELETE_LabelTitle_RESID: Button #1 */
 END
 
-IDC_DELETE_LargeImages_RESID    BITMAP    "res\\OpenHH.bmp" /* LargeImages IDC_DELETE_LargeImages_RESID: Button #1 */
+IDC_DELETE_LargeImages_RESID    BITMAP    "res\\delete.bmp" /* LargeImages IDC_DELETE_LargeImages_RESID: Button #1 */
 STRINGTABLE 
 BEGIN
     IDC_UNDO_LabelTitle_RESID L"Undo" /* LabelTitle IDC_UNDO_LabelTitle_RESID: Button #2 */
@@ -907,6 +907,49 @@ IDC_FIND_SmallImages_RESID    BITMAP    "Res\\Find_S096.bmp" /* SmallImages IDC_
 IDC_FIND_SmallImages_120__RESID    BITMAP    "Res\\Find_S120.bmp" /* SmallImages IDC_FIND_SmallImages_120__RESID: (null) */
 IDC_FIND_SmallImages_144__RESID    BITMAP    "Res\\Find_S144.bmp" /* SmallImages IDC_FIND_SmallImages_144__RESID: (null) */
 IDC_FIND_SmallImages_192__RESID    BITMAP    "Res\\Find_S192.bmp" /* SmallImages IDC_FIND_SmallImages_192__RESID: (null) */
+STRINGTABLE 
+BEGIN
+    IDC_FIND2_LabelTitle_RESID L"Find" /* LabelTitle IDC_FIND2_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_FIND2_TooltipTitle_RESID L"Find (Ctrl+F)" /* TooltipTitle IDC_FIND2_TooltipTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_FIND2_TooltipDescription_RESID L"Find text in the document." /* TooltipDescription IDC_FIND2_TooltipDescription_RESID: (null) */
+END
+
+IDC_FIND2_SmallImages_RESID    BITMAP    "Res\\Find3_S096.bmp" /* SmallImages IDC_FIND2_SmallImages_RESID: (null) */
+IDC_FIND2_SmallImages_120__RESID    BITMAP    "Res\\Find3_S120.bmp" /* SmallImages IDC_FIND2_SmallImages_120__RESID: (null) */
+IDC_FIND2_SmallImages_144__RESID    BITMAP    "Res\\Find3_S144.bmp" /* SmallImages IDC_FIND2_SmallImages_144__RESID: (null) */
+IDC_FIND2_SmallImages_192__RESID    BITMAP    "Res\\Find3_S192.bmp" /* SmallImages IDC_FIND2_SmallImages_192__RESID: (null) */
+STRINGTABLE 
+BEGIN
+    IDC_FINDUP_LabelTitle_RESID L"Search up" /* LabelTitle IDC_FINDUP_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_FINDUP_TooltipTitle_RESID L"Search up" /* TooltipTitle IDC_FINDUP_TooltipTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDC_FINDUP_TooltipDescription_RESID L"Search up instead of down." /* TooltipDescription IDC_FINDUP_TooltipDescription_RESID: (null) */
+END
+
+IDC_FINDUP_SmallImages_RESID    BITMAP    "Res\\Up_S096.bmp" /* SmallImages IDC_FINDUP_SmallImages_RESID: (null) */
+IDC_FINDUP_SmallImages_120__RESID    BITMAP    "Res\\Up_S120.bmp" /* SmallImages IDC_FINDUP_SmallImages_120__RESID: (null) */
+IDC_FINDUP_SmallImages_144__RESID    BITMAP    "Res\\Up_S144.bmp" /* SmallImages IDC_FINDUP_SmallImages_144__RESID: (null) */
+IDC_FINDUP_SmallImages_192__RESID    BITMAP    "Res\\Up_S192.bmp" /* SmallImages IDC_FINDUP_SmallImages_192__RESID: (null) */
+STRINGTABLE 
+BEGIN
+    IDC_FINDCOMBO_LabelTitle_RESID L"Find" /* LabelTitle IDC_FINDCOMBO_LabelTitle_RESID: (null) */
+END
+
 STRINGTABLE 
 BEGIN
     IDC_REPLACE_LabelTitle_RESID L"Replace" /* LabelTitle IDC_REPLACE_LabelTitle_RESID: (null) */

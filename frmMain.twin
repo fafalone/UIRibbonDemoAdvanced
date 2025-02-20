@@ -4,6 +4,11 @@
 Class frmMain
     Option Explicit
     
+    'TODO TODO TODO
+    'HMtoPx/PxToHm update wdl and remove
+    'test minitoolbar find
+    'implement pic resize
+    
     'Demo developer options:
     'Enable interaction with the font control
     #Const dbg_enablefont = 1
@@ -22,6 +27,8 @@ Class frmMain
     #Const dbg_usenewrichedit = 1
     Private bD2DFound As Boolean
     
+    'Use the new Windows 8+ EM_SETIMAGE instead of the Win7-compatible, nonclipboard clearing way. Resize picture will not work.
+    #Const dbg_richedusesetimage = 0
     
     #Region "ReadMe"
     /*
@@ -32,9 +39,25 @@ Class frmMain
         Project repository: https://github.com/fafalone/UIRibbonDemoAdvanced (this project)
                             https://github.com/fafalone/UIRibbonDemos (earlier ribbon demos)
         License: MIT License, see LICENCE.md for more info.
-        Last updated: 18 Feb 2025 
+        Last updated: 20 Feb 2025 
         
         Changelog:
+        (Version 4.1.4, 20 Feb 2025) 
+              -There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the
+               button when Context #1 is selected.
+              -Other resource IDs being identical to command ids caused names reported by the log to be 
+               e.g. Command_LabelTitle_ResId instead of command. This is just cosmetic in the log, it 
+               didn't affect program operation.
+              -Set Galleries PictureBox HasDC to False to avoid visual glitching on Win7; same notes
+               apply as with the form.
+              -Set As Ribbon Colors now skips items you didn't pick a color for.
+              -Cursor flickering fixed and performance improved by no longer forcing the I-beam on the
+               WM_SETCURSOR message; I don't even recall why I was doing that.
+              -Inserting a picture on Win7 no longer takes over the clipboard. The new method also 
+               replaces the EM_SETIMAGE way so the resize function can work; for some reason images
+               inserted with EM_SETIMAGE aren't recognized as OLE objects by IRichEditOle.
+               You can switch back by changing dbg_richedusesetimage to 1.
+              
         (Version 4.0.3, 18 Feb 2025) Switched to alternate RGBToHSB algorithm from wqweto, since the 
               original was overflowing in some cases.
         (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No
@@ -142,6 +165,10 @@ Class frmMain
           <Command Name="CmdCentimeters" Symbol="IDC_CMD_CENTIMETERS" Id="16" LabelTitle="Centimeters"/>
           
         - The customize QAT popup now includes items not enabled by default.
+        
+        - The power of the Minitoolbar is shown off with a much more complex popup for the RichEdit with
+          a font control and combobox associated with a Find command and dynmically populated Find MRU
+          list as its item source.
           
         - Experimental use of newer RichEdit control that supports Color Fonts, typically used for 
           showing color emojis. For this to work, riched20.dll and msptls.dll from recent MSOffice
@@ -159,10 +186,10 @@ Class frmMain
         - Also not directly related but the Word Wrap option shows recreating the RichEdit control
           while preserving RTF formatting using a temp file. It does also demonstrate setting a 
           Ribbon checkbox to checked by default though.
-        - Another RTF feature, the Picture button/command shows two methods: For Win8+ or Win7+Office
-          RichEdit, it uses EM_SETIMAGE. For plain Win7, it uses a hacky shortcut of copying it to the
-          clipboard and pasting it in; there's a link in the code describing a more proper (but much 
-          more involved) way of doing it.
+        - Another RTF feature, the Picture button/command shows two methods: The original Win7+ way
+          using IRichEditOle.InsertObject, which allows the Resize and Change Picture buttons to now
+          be functional, and disabled by default, but the original version used the Win8+ message
+          EM_INSERTIMAGE, which for some reason isn't recognized as an embedded object.
         - And one more non-Ribbon bonus feature: The Find/Replace buttons are fully working, just
           like Notepad and Wordpad they show the system default Find/Replace dialog, which has been
           set to behave in a similar fashion. Also included is a hooking routine to enable use of
@@ -197,6 +224,10 @@ Class frmMain
          exe. These are included as they only come with Office, and then only in the bitness of the,
          installed version of Office, at least for Win10: On Windows 11 the riched20.dll in the new
          Notepad folder (Program Files\WindowsApps\Microsoft.WindowsNotepad\) could be used (64bit only).
+         IMPORTANT: Some VMs like VirtualBox have broken Direct2D support so the new RichEdit DLL may
+                    crash. I'll investigate a way to check to avoid trying to load it in this case.
+                    Most stock versions of Windows 7 do not support color fonts, so while the Direct2D
+                    RichEdit will work, emojis won't be in color.
          
         Thanks:
         -This project is based on just about every C/C++ Ribbon project I could find, including:
@@ -234,7 +265,9 @@ Class frmMain
 
     [Description("The hWnd of the RichEdit control.")]
     Private hRE As LongPtr
-
+    [Description("The OLE interface of the RichEdit control.")]
+    Private pRichEditOle As IRichEditOle
+    
     [Description("Handle to the IBeam cursor for the RichEdit window.")]
     Private hCurRE As LongPtr
     
@@ -348,88 +381,95 @@ Class frmMain
     
     Private WM_FINDCALLBACK As Long
     
+    Private sFindMRU() As String
+    Private nFindMRU As Long
+    Private Const mFindMRUMax As Long = 10
+    
+    Private mPicAR As Single, mPicCX As Long, mPicCY As Long
+    Private bAuto As Boolean
+    
     #Region "CmdIDs"
     'Taken from ribbon.h where they're autogenerated 
     Public Const cmdApplicationMenu  = 600
     Public Const IDC_TABMAIN  = 1001
-    Public Const IDC_TABMAIN_LabelTitle_RESID  = 1001
+    Public Const IDC_TABMAIN_LabelTitle_RESID  = 1101
     Public Const cmdGroupMain  = 1002
-    Public Const cmdGroupMain_LabelTitle_RESID  = 1002
+    Public Const cmdGroupMain_LabelTitle_RESID  = 1102
     Public Const cmdGroupMain_SmallImages_RESID  = 969
     Public Const cmdGroupMain_SmallImages_120__RESID  = 968
     Public Const cmdGroupMain_SmallImages_144__RESID  = 967
     Public Const cmdGroupMain_SmallImages_192__RESID  = 966
     Public Const IDC_TABTABLE  = 1003
-    Public Const IDC_TABTABLE_LabelTitle_RESID  = 1003
+    Public Const IDC_TABTABLE_LabelTitle_RESID  = 1103
     Public Const IDC_TABDESIGN  = 1004
-    Public Const IDC_TABDESIGN_LabelTitle_RESID  = 1004
+    Public Const IDC_TABDESIGN_LabelTitle_RESID  = 1104
     Public Const IDC_TABLAYOUT  = 1005
-    Public Const IDC_TABLAYOUT_LabelTitle_RESID  = 1005
+    Public Const IDC_TABLAYOUT_LabelTitle_RESID  = 1105
     Public Const cmdGroupDesign  = 1006
-    Public Const cmdGroupDesign_LabelTitle_RESID  = 1006
+    Public Const cmdGroupDesign_LabelTitle_RESID  = 1106
     Public Const cmdGroupLayout  = 1007
-    Public Const cmdGroupLayout_LabelTitle_RESID  = 1007
+    Public Const cmdGroupLayout_LabelTitle_RESID  = 1107
     Public Const IDC_SELECT  = 1050
-    Public Const IDC_SELECT_LabelTitle_RESID  = 1050
+    Public Const IDC_SELECT_LabelTitle_RESID  = 1150
     Public Const IDC_SELECT_LabelDescription_RESID  = 1051
     Public Const IDC_SELECT_TooltipTitle_RESID  = 1052
     Public Const IDC_SELECT_TooltipDescription_RESID  = 1053
     Public Const IDC_SELECT_LargeImages_RESID  = 150
     Public Const IDC_UNSELECT  = 1060
-    Public Const IDC_UNSELECT_LabelTitle_RESID  = 1060
+    Public Const IDC_UNSELECT_LabelTitle_RESID  = 1160
     Public Const IDC_UNSELECT_LabelDescription_RESID  = 1061
     Public Const IDC_UNSELECT_TooltipTitle_RESID  = 1062
     Public Const IDC_UNSELECT_TooltipDescription_RESID  = 1063
     Public Const IDC_UNSELECT_LargeImages_RESID  = 160
     Public Const IDC_DESIGN1  = 1010
-    Public Const IDC_DESIGN1_LabelTitle_RESID  = 1010
+    Public Const IDC_DESIGN1_LabelTitle_RESID  = 1110
     Public Const IDC_DESIGN1_LargeImages_RESID  = 110
     Public Const IDC_DESIGN2  = 1011
-    Public Const IDC_DESIGN2_LabelTitle_RESID  = 1011
+    Public Const IDC_DESIGN2_LabelTitle_RESID  = 1111
     Public Const IDC_DESIGN2_LargeImages_RESID  = 111
     Public Const IDC_DESIGN3  = 1012
     Public Const IDC_DESIGN3_LabelTitle_RESID  = 10112
     Public Const IDC_DESIGN3_LargeImages_RESID  = 112
     Public Const IDC_LAYOUT1  = 1013
-    Public Const IDC_LAYOUT1_LabelTitle_RESID  = 1013
+    Public Const IDC_LAYOUT1_LabelTitle_RESID  = 1113
     Public Const IDC_LAYOUT1_LargeImages_RESID  = 113
     Public Const IDC_LAYOUT2  = 1014
-    Public Const IDC_LAYOUT2_LabelTitle_RESID  = 1014
+    Public Const IDC_LAYOUT2_LabelTitle_RESID  = 1114
     Public Const IDC_LAYOUT2_LargeImages_RESID  = 114
     Public Const IDC_TABVIEW  = 1998
     Public Const IDC_TABVIEW_LabelTitle_RESID  = 1999
     Public Const cmdButtonsGroup  = 2000
-    Public Const cmdButtonsGroup_LabelTitle_RESID  = 2000
+    Public Const cmdButtonsGroup_LabelTitle_RESID  = 2100
     Public Const cmdDropDownColorPickerGroup  = 2001
-    Public Const cmdDropDownColorPickerGroup_LabelTitle_RESID  = 2001
+    Public Const cmdDropDownColorPickerGroup_LabelTitle_RESID  = 2101
     Public Const cmdDropDownColorPickerGroup_SmallImages_RESID  = 961
     Public Const cmdDropDownColorPickerGroup_SmallImages_120__RESID  = 962
     Public Const cmdDropDownColorPickerGroup_SmallImages_144__RESID  = 963
     Public Const cmdDropDownColorPickerGroup_SmallImages_192__RESID  = 964
     Public Const IDC_COLORTHEME  = 2002
-    Public Const IDC_COLORTHEME_LabelTitle_RESID  = 2002
+    Public Const IDC_COLORTHEME_LabelTitle_RESID  = 2102
     Public Const IDC_COLORTHEME_LargeImages_RESID  = 202
     Public Const IDC_COLORSTD  = 2003
-    Public Const IDC_COLORSTD_LabelTitle_RESID  = 2003
+    Public Const IDC_COLORSTD_LabelTitle_RESID  = 2103
     Public Const IDC_COLORSTD_LargeImages_RESID  = 203
     Public Const IDC_CLRHILITE  = 204
-    Public Const IDC_CLRHILITE_LabelTitle_RESID  = 2004
-    Public Const IDC_CLRHILITE_LargeImages_RESID  = 204
+    Public Const IDC_CLRHILITE_LabelTitle_RESID  = 2104
+    Public Const IDC_CLRHILITE_LargeImages_RESID  = 2105
     Public Const IDC_LISTCOLORS  = 2006
-    Public Const IDC_LISTCOLORS_LabelTitle_RESID  = 2006
+    Public Const IDC_LISTCOLORS_LabelTitle_RESID  = 2106
     Public Const IDC_LISTCOLORS_LargeImages_RESID  = 206
     Public Const IDC_NEW  = 7001
-    Public Const IDC_NEW_LabelTitle_RESID  = 7001
+    Public Const IDC_NEW_LabelTitle_RESID  = 7101
     Public Const IDC_NEW_LabelDescription_RESID  = 7002
     Public Const IDC_NEW_TooltipTitle_RESID  = 7003
     Public Const IDC_NEW_TooltipDescription_RESID  = 7004
     Public Const IDC_NEW_SmallImages_RESID  = 701
     Public Const IDC_NEW_LargeImages_RESID  = 702
     Public Const IDC_OPEN  = 8000
-    Public Const IDC_OPEN_LabelTitle_RESID  = 8000
-    Public Const IDC_OPEN_LabelDescription_RESID  = 8001
-    Public Const IDC_OPEN_TooltipTitle_RESID  = 8002
-    Public Const IDC_OPEN_TooltipDescription_RESID  = 8003
+    Public Const IDC_OPEN_LabelTitle_RESID  = 8100
+    Public Const IDC_OPEN_LabelDescription_RESID  = 8101
+    Public Const IDC_OPEN_TooltipTitle_RESID  = 8102
+    Public Const IDC_OPEN_TooltipDescription_RESID  = 8103
     Public Const IDC_OPEN_SmallImages_RESID  = 801
     Public Const IDC_OPEN_LargeImages_RESID  = 800
     Public Const IDC_SAVE  = 9000
@@ -714,6 +754,24 @@ Class frmMain
     Public Const IDC_FIND_SmallImages_120__RESID  = 3740
     Public Const IDC_FIND_SmallImages_144__RESID  = 3741
     Public Const IDC_FIND_SmallImages_192__RESID  = 3742
+    Public Const IDC_FIND2  = 4560
+    Public Const IDC_FIND2_LabelTitle_RESID  = 4561
+    Public Const IDC_FIND2_TooltipTitle_RESID  = 4562
+    Public Const IDC_FIND2_TooltipDescription_RESID  = 4563
+    Public Const IDC_FIND2_SmallImages_RESID  = 4564
+    Public Const IDC_FIND2_SmallImages_120__RESID  = 4565
+    Public Const IDC_FIND2_SmallImages_144__RESID  = 4566
+    Public Const IDC_FIND2_SmallImages_192__RESID  = 4567
+    Public Const IDC_FINDUP  = 4570
+    Public Const IDC_FINDUP_LabelTitle_RESID  = 4571
+    Public Const IDC_FINDUP_TooltipTitle_RESID  = 4572
+    Public Const IDC_FINDUP_TooltipDescription_RESID  = 4573
+    Public Const IDC_FINDUP_SmallImages_RESID  = 4574
+    Public Const IDC_FINDUP_SmallImages_120__RESID  = 4575
+    Public Const IDC_FINDUP_SmallImages_144__RESID  = 4576
+    Public Const IDC_FINDUP_SmallImages_192__RESID  = 4577
+    Public Const IDC_FINDCOMBO  = 430
+    Public Const IDC_FINDCOMBO_LabelTitle_RESID  = 431
     Public Const IDC_REPLACE  = 3743
     Public Const IDC_REPLACE_LabelTitle_RESID  = 3745
     Public Const IDC_REPLACE_TooltipTitle_RESID  = 3746
@@ -893,6 +951,9 @@ Class frmMain
     'These are manual entries for galleries. The resources they refer to 
     'also have to be placed in the resources manually, either into the .rc 
     'before compiling, into the .res, or added into tB.
+    
+    Private Const IDC_FINDCBITEMBASE As Long = 32730
+    
     Private Const IDS_APP_TITLE  = 103
     Private Const IDI_GALLERY  = 107
     Private Const IDI_SMALL  = 108
@@ -977,6 +1038,25 @@ Class frmMain
         List1.AddItem sMsg, 0
     End Sub
     
+
+    
+    'Ribbon is Win7+
+    Private Function CheckWin7OrHigher() As Boolean
+        Dim dwMajor As Long, dwMinor As Long
+        CopyMemory dwMajor, ByVal &H7FFE026C, 4 'Reads NtMajorVersion field of KUSER_SHARED_DATA
+        If dwMajor > 6 Then Return True
+        CopyMemory dwMinor, ByVal &H7FFE0270, 4 'Reads NtMinorVersion field of KUSER_SHARED_DATA
+        If (dwMajor = 6) And (dwMinor >= 1) Then Return True
+    End Function
+    'IUIEventLogger is Win8+
+    Private Function CheckWin8OrHigher() As Boolean
+        Dim dwMajor As Long, dwMinor As Long
+        CopyMemory dwMajor, ByVal &H7FFE026C, 4 'Reads NtMajorVersion field of KUSER_SHARED_DATA
+        If dwMajor > 6 Then Return True
+        CopyMemory dwMinor, ByVal &H7FFE0270, 4 'Reads NtMinorVersion field of KUSER_SHARED_DATA 
+        If (dwMajor = 6) And (dwMinor >= 2) Then Return True
+    End Function
+    
     Private Sub OnInitialize() Handles Form.Initialize
             mWin7 = CheckWin7OrHigher()
             mWin8 = CheckWin8OrHigher()
@@ -993,23 +1073,7 @@ Class frmMain
             End If
     End Sub
     
-    'Ribbon is Win7+
-    Private Function CheckWin7OrHigher() As Boolean
-        Dim dwMajor As Long, dwMinor As Long
-        CopyMemory dwMajor, ByVal &H7FFE026C, 4 'Reads NtMajorVersion field of KUSER_SHARED_DATA
-        If dwMajor > 6 Then Return True
-        CopyMemory dwMinor, ByVal &H7FFE0270, 4 'Reads NtMinorVersion field of KUSER_SHARED_DATA
-        If (dwMajor = 6) And (dwMinor >= 1) Then Return True
-    End Function
-    'IUIEventLogger is Win8+
-    Private Function CheckWin8OrHigher() As Boolean
-        Dim dwMajor As Long, dwMinor As Long
-        CopyMemory dwMajor, ByVal &H7FFE026C, 4 'Reads NtMajorVersion field of KUSER_SHARED_DATA
-        If dwMajor > 6 Then Return True
-        CopyMemory dwMinor, ByVal &H7FFE0270, 4 'Reads NtMinorVersion field of KUSER_SHARED_DATA
-        If (dwMajor = 6) And (dwMinor >= 2) Then Return True
-    End Function
-    
+    #Region "EventHandlers"
     Private Sub OnLoad() Handles Form.Load
         If mWin7 = False Then
             MsgBox "This app is not supported on Windows versions before Windows 7", vbOKOnly Or vbCritical, App.Title
@@ -1023,7 +1087,7 @@ Class frmMain
         Set pFramework = New UIRibbonFramework
         Set pUIApp = New clsRibbonEvents
         #If dbg_enablesavestate Then
-        pUIApp.SettingsFileName = App.Path & "\ribbon.cfg" 'this call must be done first to enable ribbon state persistance
+        pUIApp.SettingsFileName = App.Path & "\ribbon.cfg" 'this call must be done first to enable ribbon state persistance 
         #End If
         pFramework.Initialize Me.hWnd, pUIApp
         LogMsg "Successfully initialized Ribbon Framework"
@@ -1088,6 +1152,7 @@ Class frmMain
         Set pUIApp = Nothing
         If hRE Then
             RemoveClipboardFormatListener(hRE)
+            Set pRichEditOle = Nothing
             DestroyWindow hRE
             hRE = 0
         End If
@@ -1146,7 +1211,7 @@ Class frmMain
         If hRE Then
             Dim rc As RECT
             GetClientRect pbREHost.hWnd, rc
-            SetWindowPos hRE, 0, 0, 0, rc.Right, rc.Bottom, SWP_NOMOVE Or SWP_NOZORDER
+            SetWindowPos hRE, 0, 2, 2, rc.Right - 2, rc.Bottom - 2, SWP_NOMOVE Or SWP_NOZORDER
         End If
     End Sub
     
@@ -1155,9 +1220,92 @@ Class frmMain
     End Sub
     
     Private Sub OnSetRibbonColors() Handles Command3.Click
-        Dim hr As Long = SetRibbonColors(pFramework, pbClrTheme.BackColor, pbClrStd.BackColor, pbClrHighlight.BackColor)
-        LogMsg "SetRibbonColors hr=0x" & Hex$(hr)
+        Dim hr As Long
+        If (lblNone.Visible = False) And (lblNone2.Visible = False) And (lblNone3.Visible = False) Then
+            hr = SetRibbonColors(pFramework, pbClrTheme.BackColor, pbClrStd.BackColor, pbClrHighlight.BackColor)
+            LogMsg "SetRibbonColors hr=0x" & Hex$(hr)
+        Else
+            If (lblNone.Visible = False) Then
+                hr = SetRibbonBackgroundColor(pFramework, pbClrTheme.BackColor)
+            End If
+            If (lblNone2.Visible = False) Then
+                hr = SetRibbonTextColor(pFramework, pbClrStd.BackColor)
+            End If
+            If (lblNone3.Visible = False) Then
+                hr = SetRibbonHighlightColor(pFramework, pbClrHighlight.BackColor)
+            End If
+            End If
     End Sub
+    
+    Private Sub Text2_Change() Handles Text2.Change
+        If bAuto = False Then
+            If Check1.Value = vbChecked Then 'lock ratio
+                bAuto = True
+                If Option1(0).Value = True Then
+                    Text1.Text = Text2.Text
+                Else
+                    Text1.Text = Round(CDbl(Text2.Text) * mPicAR, 0)
+                End If
+                bAuto = False
+            End If
+        End If
+    End Sub
+    Private Sub Text1_Change() Handles Text1.Change
+        If bAuto = False Then
+            If Check1.Value = vbChecked Then 'lock ratio
+                bAuto = True
+                If Option1(0).Value = True Then
+                    Text2.Text = Text1.Text
+                Else
+                    Text2.Text = Round(CDbl(Text1.Text) * mPicAR, 0)
+                End If
+                bAuto = False
+            End If
+        End If
+    End Sub
+    
+    Private Sub Option1_Click(Index As Integer) Handles Option1.Click
+        If Index = 0 Then
+            Text1.Text = "50"
+            Text2.Text = "50"
+        Else
+            Text1.Text = mPicCX
+            Text2.Text = mPicCY
+        End If
+    End Sub
+    
+    Private Sub Command4_Click() Handles Command4.Click
+        Dim tSZ As SIZE
+        If Option1(0).Value = True Then
+            tSZ.cx = mPicCX * (CLng(Text1.Text) / 100)
+            tSZ.cy = mPicCY * (CLng(Text2.Text) / 100)
+        Else
+            tSZ.cx = CLng(Text1.Text)
+            tSZ.cy = CLng(Text2.Text)
+        End If
+        RichEdResizeImg(tSZ)
+        Picture2.Visible = False
+    End Sub
+     
+    Private Sub Picture2_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Picture2.MouseMove
+        If Button = 1 Then
+            Call ReleaseCapture
+            Call SendMessage(Picture2.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&)
+        End If
+    End Sub
+ 
+    Private Sub Label12_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Label12.MouseMove
+        If Button = 1 Then
+            Call ReleaseCapture
+            Call SendMessage(Picture2.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&)
+        End If
+    End Sub
+    
+    Private Sub Command5_Click() Handles Command5.Click
+        Picture2.Visible = False
+    End Sub
+    
+    #End Region
     
     Private Sub ShowHelp()
         Dim tdc As TASKDIALOGCONFIG
@@ -1242,7 +1390,7 @@ Class frmMain
                 Debug.Print "CreateRichEd added ScrollBar styles"
             End If
             hRE = CreateWindowExW(0, StrPtr(szClass), 0, dwStyle, _
-                    0, 0, rc.Right, rc.Bottom, pbREHost.hWnd, 0, App.hInstance, ByVal 0&)
+                    2, 2, rc.Right - 2, rc.Bottom - 2, pbREHost.hWnd, 0, App.hInstance, ByVal 0&)
                     
             If hRE Then
                 #If dbg_usenewrichedit Then
@@ -1268,6 +1416,7 @@ Class frmMain
                     SetWindowText hRE, sWelcomeStd
                 End If
                 mFirstChange = False 'Reset whether the first change has occured, because we start that with user input
+                Dim hr As Long = CLng(SendMessage(hRE, EM_GETOLEINTERFACE, 0, pRichEditOle))
             Else
                 Debug.Print "CreateRichEd Error=" & Err.LastDllError & ", " & GetSystemErrorString(Err.LastDllError)
                 FreeLibrary hREDll
@@ -1917,7 +2066,7 @@ Class frmMain
         Return False
     End Function
     
-    Private Sub DoInsertPicture()
+    Private Sub DoInsertPicture(Optional bChange As Boolean = False)
         On Error GoTo e0
         
         If mWin8 Or bD2DFound Then
@@ -1927,7 +2076,7 @@ Class frmMain
             Dim sPic As String
             Dim tFilt(0) As COMDLG_FILTERSPEC
             tFilt(0).pszName = StrPtr("Supported image formats")
-            tFilt(0).pszSpec = StrPtr("*.jpg;*.gif;*.bmp;*.png")
+            tFilt(0).pszSpec = StrPtr("*.bmp;*.gif;*.jpg;*.png")
             With fso
                 .SetTitle "Insert picture..."
                 .SetOptions(FOS_FILEMUSTEXIST)
@@ -1939,6 +2088,15 @@ Class frmMain
             End With
             If si IsNot Nothing Then
                 Dim sFile As String
+                If bChange Then
+                    SendMessage hRE, EM_REPLACESEL, CFALSE, ByVal StrPtr("")
+                End If
+                #If dbg_richedusesetimage = 0 Then
+                si.GetDisplayName(SIGDN_FILESYSPATH, lp)
+                sFile = LPWSTRtoStr(lp)
+                RichEdInsertBmpOld sFile, 0, 0
+                Exit Sub
+                #End If
                 si.GetDisplayName(SIGDN_NORMALDISPLAY, lp)
                 sFile = LPWSTRtoStr(lp)
                 Dim cx As Long, cy As Long
@@ -1952,7 +2110,7 @@ Class frmMain
                     Exit Sub
                 End If
                 szPx.cx = cx: szPx.cy = cy
-                PixelToHimetric szPx, szHm
+                PixelToHiMetric szPx, szHm
                 LogMsg "DoInsertPicture::szPx.cx=" & szPx.cx & ",szHm.cx=" & szHm.cx
                 
                 Dim pStm As IStream
@@ -1968,52 +2126,118 @@ Class frmMain
                 If hRE Then SendMessage hRE, EM_INSERTIMAGE, 0, tImg
             End If
         Else
-            MsgBox "To do this properly on a Windows 7 standard richedit, see https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/220844" & vbCrLf & _
-                    "For now, this is implemented by a shortcut that dumps current clipboard contents and pastes it.", vbOKOnly Or vbInformation, App.Title
-            
             Dim sFile2 As String
             si.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, lp)
             sFile2 = LPWSTRtoStr(lp)
-            'Please use proper gdip startup/shutdown and memory freeing in a real app, not this hacky shortcut
-            Dim hBmpGdi As LongPtr, hBmp As LongPtr
-            Static tGdip As GdiplusStartupInput
-            Static gdipToken As LongPtr
-            If gdipToken = 0 Then
-                tGdip.GdiplusVersion = 1
-                GdiplusStartup(gdipToken, tGdip)
-            End If
-            GdipCreateBitmapFromFile StrPtr(sFile2), hBmpGdi
-            GdipCreateHBITMAPFromBitmap hBmpGdi, hBmp, 0
-            OpenClipboard(Me.hWnd)
-            EmptyClipboard()
-            SetClipboardData(CF_BITMAP, hBmp)
-            CloseClipboard()
-            SetFocusAPI hRE
-            SendMessage hRE, WM_PASTE, 0, ByVal 0
-            GdipFree(hBmpGdi)
+            RichEdInsertBmpOld sFile2, 0, 0
         End If
         Exit Sub
         e0:
         LogMsg "DoInsertPicture error: " & Err.Number & ", " & Err.Description
     End Sub
- 
-    [Description("Implementation of AtlPixelToHiMetric")]
-    Private Sub PixelToHimetric(px As SIZE, hm As SIZE, Optional hwndForDC As LongPtr = 0)
-        Dim nPixelsPerInchX As Long
-        Dim nPixelsPerInchY As Long
+    
+    Private lpObject As IOleObject
+    Private lpStorage As IStorage
+    Private lpClientSite As IOleClientSite
+    Private Sub RichEdInsertBmpOld(sFile As String, cx As Long, cy As Long)
+        Dim lpLockBytes As ILockBytes
+        Dim render As OLERENDER = OLERENDER_DRAW
+        Dim cfFormat As Integer
+        Dim tFmtEtc As FORMATETC
+        Dim sc As Long
+        Dim cls As UUID
         
-        Dim hDC As LongPtr = GetDC(hwndForDC)
-        nPixelsPerInchX = GetDeviceCaps(hDC, LOGPIXELSX)
-        nPixelsPerInchY = GetDeviceCaps(hDC, LOGPIXELSY)
-        ReleaseDC(hwndForDC, hDC)
-        hm.cx = MAP_PIX_TO_LOGHIM(px.cx, nPixelsPerInchX)
-        hm.cy = MAP_PIX_TO_LOGHIM(px.cy, nPixelsPerInchY)
+        sc = CreateILockBytesOnHGlobal(0, CTRUE, lpLockBytes)
+        If sc <> S_OK Then
+            Debug.Print "Error creating lockbytes"
+            Exit Sub
+        End If
+        sc = StgCreateDocfileOnILockBytes(lpLockBytes, STGM_SHARE_EXCLUSIVE Or STGM_CREATE Or STGM_READWRITE, 0, lpStorage)
+        If sc <> S_OK Then
+            Debug.Print "Error creating lpStorage"
+            Set lpLockBytes = Nothing
+            Exit Sub
+        End If
+        tFmtEtc.dwAspect = DVASPECT_CONTENT
+        tFmtEtc.lIndex = -1
+        tFmtEtc.tymed = TYMED_NULL
+        
+        Set lpClientSite = pRichEditOle.GetClientSite()
+        
+        sc = OleCreateFromFile(cls, sFile, IID_IOleObject, OLERENDER_DRAW, tFmtEtc, lpClientSite, lpStorage, lpObject)
+        
+        If lpObject IsNot Nothing Then
+            OleSetContainedObject lpObject, CTRUE
+            Dim reobj As REOBJECT
+            reobj.cbStruct = LenB(Of REOBJECT)
+            Dim cid As UUID
+            lpObject.GetUserClassID(cid)
+            reobj.clsid = cid
+            reobj.cp = REO_CP_SELECTION
+            reobj.dvaspect = DVASPECT_CONTENT
+            reobj.dwFlags = REO_RESIZABLE Or REO_BELOWBASELINE
+            reobj.dwUser = 0
+            Set reobj.poleobj = lpObject
+            Set reobj.polesite = lpClientSite
+            Set reobj.pstg = lpStorage
+            
+            pRichEditOle.InsertObject(reobj)
+            
+            Set lpObject = Nothing
+            Set lpStorage = Nothing
+            Set lpClientSite = Nothing
+        End If
     End Sub
-    Private Function MAP_PIX_TO_LOGHIM(x As Long, ppli As Long) As Long
-        Const HIMETRIC_PER_INCH = 2540
-        Return MulDiv(HIMETRIC_PER_INCH, x, ppli)
+    
+    [Description("Determines if a picture is selected and can be resized, and if so fills in the size data in himetric.")]
+    Private Function PictureSelectedForResize(lpSize As SIZE) As Boolean
+        Dim tObj As REOBJECT
+        If hRE Then
+            If pRichEditOle IsNot Nothing Then
+                Dim tRng As CHARRANGE
+                SendMessage hRE, EM_EXGETSEL, 0, tRng
+                Debug.Print "RichEdResize sel=" & tRng.cpMin & "-" & tRng.cpMax
+                Debug.Print "OLE object count=" & pRichEditOle.GetObjectCount()
+                tObj.cbStruct = LenB(Of REOBJECT)
+                tObj.cp = tRng.cpMin
+                Dim hr As Long = pRichEditOle.GetObject(REO_IOB_USE_CP, tObj, REO_GETOBJ_ALL_INTERFACES)
+                If hr = S_OK Then
+                    If (tObj.dwFlags And REO_RESIZABLE) = REO_RESIZABLE Then
+                        lpSize = tObj.sizel
+                        Return True
+                    End If
+                 End If
+            End If
+        End If
     End Function
- 
+    Private Sub DoResizePicture()
+        Dim tPicSZ As SIZE
+        If PictureSelectedForResize(tPicSZ) Then
+            Dim tSZ As SIZE
+            HiMetricToPixel(tPicSZ, tSZ)
+            mPicCX = tSZ.cx: mPicCY = tSZ.cy
+            If mPicCX = mPicCY Then
+                mPicAR = 1
+            Else
+                If mPicCX < mPicCY Then
+                    mPicAR = CDbl(mPicCX) / CDbl(mPicCY)
+                Else
+                    mPicAR = CDbl(mPicCY) / CDbl(mPicCX)
+                End If
+            End If
+            Debug.Print "DoResizePicture orig=" & tPicSZ.cx & "x" & tPicSZ.cy & " (" & tSZ.cx & "x" & tSZ.cy & "); AR=" & Round(mPicAR, 2)
+            SetParent Picture2.hWnd, Me.hWnd
+            Picture2.Visible = True
+            Dim dwFrEx As Long
+            dwFrEx = CLng(GetWindowLong(Picture2.hWnd, GWL_EXSTYLE))
+            dwFrEx = dwFrEx Or WS_EX_DLGMODALFRAME
+            SetWindowLong Picture2.hWnd, GWL_EXSTYLE, dwFrEx
+            SetWindowPos Picture2.hWnd, 0&, Label3.Left, Label1.Top + 4, 0&, 0&, SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_FRAMECHANGED
+            Option1(0).Value = True
+            Text1.Text = "50": Text2.Text = "50"
+            Check1.Value = vbChecked
+        End If
+    End Sub
     
     [Description("Synchronizes any list item format with the current position in the RichEdit.")]
     Private Sub SyncListType()
@@ -2118,15 +2342,15 @@ Class frmMain
     [Description("Sets the line spacing of the RichEdit control.")]
     Private Sub SetLineSpacing()
         'Use the tom COM interfaces here since it lets us specify a Single for spacing multiple
-        Dim pRichOle As IRichEditOle
+        ' Dim pRichOle As IRichEditOle
         Dim pRange As ITextRange
         Dim pRichDoc As ITextDocument
         Dim pPara As ITextPara
         Dim pSel As ITextSelection
         
-        SendMessage hRE, EM_GETOLEINTERFACE, 0, pRichOle
-        If pRichOle IsNot Nothing Then
-            Set pRichDoc = pRichOle
+        ' SendMessage hRE, EM_GETOLEINTERFACE, 0, pRichOle
+        If pRichEditOle IsNot Nothing Then
+            Set pRichDoc = pRichEditOle
             Set pSel = pRichDoc.Selection
             If pSel IsNot Nothing Then
                 Set pRange = pSel
@@ -2151,6 +2375,45 @@ Class frmMain
         End If
     End Sub
     
+    Private Sub AppendFindMRU(sTerm As String)
+        Dim bDupe As Boolean, nDupe As Long
+        Dim i As Long, j As Long
+        Dim sTmp() As String
+        If nFindMRU = 0 Then
+            ReDim sFindMRU(0)
+            sFindMRU(0) = sTerm
+            nFindMRU = 1
+            Exit Sub
+        End If
+        For i = 0 To UBound(sFindMRU)
+            If sTerm = sFindMRU(i) Then
+                bDupe = True
+                nDupe = i
+                Exit For
+            End If
+        Next
+        If bDupe Then
+            ReDim sTmp(UBound(sFindMRU))
+            sTmp(0) = sTerm
+            For i = 0 To UBound(sFindMRU)
+                If i <> nDupe Then
+                    sTmp(i + 1) = sFindMRU(i)
+                End If
+            Next
+            sFindMRU = sTmp
+        Else
+            ReDim sTmp(0)
+            sTmp(0) = sTerm
+            For i = 0 To UBound(sFindMRU)
+                If (i + 1) <= mFindMRUMax Then
+                    ReDim Preserve sTmp(i + 1)
+                    sTmp(i + 1) = sFindMRU(i)
+                End If
+            Next
+            nFindMRU = UBound(sTmp) + 1
+            sFindMRU = sTmp
+        End If
+    End Sub
     Private Sub AppendMRU(sFile As String)
         Dim sMRU() As String
         Dim nUsed As Long, lMin As Long
@@ -2295,6 +2558,59 @@ Class frmMain
                 mRibbonMode = RibbonModeBoth
         End Select
     End Sub
+    
+    [Description("Performs a simple case insensitive search.")]
+    Private Function FindTextSimple(sTerm As String, bUp As Boolean) As Boolean
+        Dim tFind As FINDTEXTEXW
+        Dim dwFlags As FindReplaceFlags
+        Dim tRng As CHARRANGE
+        SendMessage hRE, EM_EXGETSEL, 0, tRng
+        If bUp = False Then
+            dwFlags = dwFlags Or FR_DOWN
+            tFind.chrg.cpMax = -1
+            If tRng.cpMax > 0 Then
+                tFind.chrg.cpMin = tRng.cpMax
+            End If
+        Else
+            tFind.chrg.cpMin = tRng.cpMin
+        End If
+        tFind.lpstrText = StrPtr(sTerm)
+        If CLng(SendMessage(hRE, EM_FINDTEXTEX, dwFlags, ByVal VarPtr(tFind))) <> -1 Then
+            Debug.Print "FindTextSimple Match=" & tFind.chrgText.cpMin & " to " & tFind.chrgText.cpMax
+            SendMessage hRE, EM_EXSETSEL, 0, ByVal VarPtr(tFind.chrgText)
+        Else
+            Beep
+            LogMsg "No matches found."
+        End If
+    End Function
+    
+    Private Function RichEdResizeImg(pxDest As SIZE) As Long
+        Dim tObj As REOBJECT
+        If hRE Then
+            If pRichEditOle IsNot Nothing Then
+                Dim tRng As CHARRANGE
+                SendMessage hRE, EM_EXGETSEL, 0, tRng
+                Debug.Print "RichEdResize sel=" & tRng.cpMin & "-" & tRng.cpMax
+                Debug.Print "OLE object count=" & pRichEditOle.GetObjectCount()
+                tObj.cbStruct = LenB(Of REOBJECT)
+                tObj.cp = tRng.cpMin
+                Dim hr As Long = pRichEditOle.GetObject(REO_IOB_USE_CP, tObj, REO_GETOBJ_ALL_INTERFACES)
+                If hr = S_OK Then
+                    Debug.Print "Got ole object? size=" & tObj.sizel.cx & "x" & tObj.sizel.cy & ",r? " & ((tObj.dwFlags And REO_RESIZABLE) = REO_RESIZABLE)
+                    tObj.cp = REO_CP_SELECTION
+                    PixelToHiMetric pxDest, tObj.sizel
+                    Dim pxFinal As SIZE
+                    HiMetricToPixel tObj.sizel, pxFinal
+                    Debug.Print "Ole object new size=" & tObj.sizel.cx & "x" & tObj.sizel.cy & " (" & pxFinal.cx & "x" & pxFinal.cy & ")"
+                    pRichEditOle.InsertObject(tObj)
+                Else
+                    Debug.Print "pOle.GetObject error hr=0x" & Hex$(hr)
+                End If
+            Else
+                Debug.Print "EM_GETOLEINTERFACE error hr=0x" & Hex$(hr)
+            End If
+        End If
+    End Function
     
     Private Sub OnRibbonCmdExecute(ByVal commandId As Long, ByVal verb As UI_EXECUTIONVERB, ByVal key As LongPtr, currentValue As Variant, ByVal bCurValWasNull As Boolean, ByVal commandExecutionProperties As IUISimplePropertySet, returnValue As Long) Handles pUIApp.OnRibbonCmdExecute
         'On Error GoTo e0
@@ -2521,7 +2837,13 @@ Class frmMain
 
             Case IDC_CMD_INSERTPIC
                 If verb = UI_EXECUTIONVERB_EXECUTE Then DoInsertPicture
-            
+                
+            Case IDC_CMD_RESIZEPIC
+                If verb = UI_EXECUTIONVERB_EXECUTE Then DoResizePicture
+                
+            Case IDC_CMD_CHANGEPIC
+                If verb = UI_EXECUTIONVERB_EXECUTE Then DoInsertPicture True
+                
             Case IDC_ALIGNLEFT, IDC_ALIGNCENTER, IDC_ALIGNRIGHT, IDC_JUSTIFY
                 If commandId = IDC_ALIGNLEFT Then mCurAlign = AlignLeft
                 If commandId = IDC_ALIGNCENTER Then mCurAlign = AlignCenter
@@ -2627,7 +2949,29 @@ Class frmMain
                         SendMessage hRE, EM_EXSETSEL, 0, tSelAll
                     End If
                 End If
-            
+                
+            Case IDC_FIND2
+                Debug.Print "Minitoolbar Find Click"
+                Dim vrf As Variant
+                Dim pszf As String
+                Dim vup As Variant
+                On Error Resume Next
+                pFramework.GetUICommandProperty(IDC_FINDCOMBO, UI_PKEY_StringValue, vrf)
+                pFramework.GetUICommandProperty(IDC_FINDUP, UI_PKEY_BooleanValue, vup)
+                On Error GoTo e0
+                If VarType(vrf) = VT_LPWSTR Then
+                    If VariantLPWSTRtoSTR(vrf, pszf) Then
+                        Debug.Print "Minitoolbar Find VT_LPWSTR=" & pszf
+                    End If
+                ElseIf VarType(vrf) = VT_BSTR Then
+                    pszf = CStr(vrf)
+                    Debug.Print "Minitoolbar Find VT_BSTR=" & pszf
+                End If
+                If pszf <> "" Then
+                    AppendFindMRU pszf
+                    FindTextSimple pszf, CBool(vup)
+                End If
+                
             Case IDC_CMD_ZOOM
                 If verb = UI_EXECUTIONVERB_EXECUTE Then
                     Dim vspin As Variant
@@ -2949,9 +3293,19 @@ Class frmMain
             Exit Sub
         End If
     End If
-    If (commandId = IDC_DELETE) Then
+
+    If (commandId = IDC_MORE) Then
         If IsEqualPKEY(pk, UI_PKEY_Enabled) Then
-            If IsTextSelected() Then
+            newValue = CVar(True)
+            bSetNewValue = True
+            Exit Sub
+        End If
+    End If
+    
+    If (commandId = IDC_CMD_RESIZEPIC) Or (commandId = IDC_CMD_CHANGEPIC) Then
+        If IsEqualPKEY(pk, UI_PKEY_Enabled) Then
+            Dim tSZ As SIZE
+            If PictureSelectedForResize(tSZ) Then
                 newValue = CVar(True)
             Else
                 newValue = CVar(False)
@@ -3103,6 +3457,41 @@ Class frmMain
     If (commandId = IDC_CUT) Or (commandId = IDC_COPY) Or (commandId = IDC_DELETE) Then
         If IsEqualPKEY(pk, UI_PKEY_Enabled) Then
             newValue = CVar(mEnableCPD)
+            bSetNewValue = True
+        End If
+    End If
+    
+    If commandId = IDC_FINDCOMBO Then
+        If IsEqualPKEY(pk, UI_PKEY_Categories) Then
+            'Must return S_FALSE (or E_NOTIMPL) to create a gallery with no categories
+            returnValue = S_FALSE
+            Exit Sub
+        ElseIf IsEqualPKEY(pk, UI_PKEY_ItemsSource) Then
+            Set pCol = currentValue
+            If nFindMRU Then
+                Dim fc As Long
+                For fc = 0 To UBound(sFindMRU)
+                    
+                    Dim pEntryF As New clsRibbonGalleryItem
+                    pEntryF.CategoryID = UI_COLLECTION_INVALIDINDEX
+                    pEntryF.Label = sFindMRU(i)
+                    pCol.Add pEntryF
+                    Set pEntryF = Nothing
+                Next
+            End If
+                    
+        ElseIf IsEqualPKEY(pk, UI_PKEY_SelectedItem) Then
+            If nFindMRU Then
+                InitPropVariantFromUInt32 0, newValue
+                bSetNewValue = True
+            End If
+                    
+        ElseIf IsEqualPKEY(pk, UI_PKEY_RepresentativeString) Then
+            'For some reason, unlike the C++ version, Windows does not size our comboboxes
+            'appropriate. This is an undocumented fix-- only the spinner control is listed
+            'as supporting this key.
+            Dim szFindSpacer As String = "Find item spacer"
+            InitPropVariantFromString szFindSpacer, newValue
             bSetNewValue = True
         End If
     End If
@@ -3673,6 +4062,24 @@ Class frmMain
     If lVal = IDC_TABVIEW Then sRet = "IDC_TABVIEW"
     If lVal = IDC_TABVIEW_LabelTitle_RESID Then sRet = "IDC_TABVIEW_LabelTitle_RESID"
     If lVal = IDC_FIND Then sRet = "IDC_FIND"
+    If lVal = IDC_FIND2 Then sRet = "IDC_FIND2"
+    If lVal = IDC_FIND2_LabelTitle_RESID Then sRet = "IDC_FIND2_LabelTitle_RESID"
+    If lVal = IDC_FIND2_TooltipTitle_RESID Then sRet = "IDC_FIND2_TooltipTitle_RESID"
+    If lVal = IDC_FIND2_TooltipDescription_RESID Then sRet = "IDC_FIND2_TooltipDescription_RESID"
+    If lVal = IDC_FIND2_SmallImages_RESID Then sRet = "IDC_FIND2_SmallImages_RESID"
+    If lVal = IDC_FIND2_SmallImages_120__RESID Then sRet = "IDC_FIND2_SmallImages_120__RESID"
+    If lVal = IDC_FIND2_SmallImages_144__RESID Then sRet = "IDC_FIND2_SmallImages_144__RESID"
+    If lVal = IDC_FIND2_SmallImages_192__RESID Then sRet = "IDC_FIND2_SmallImages_192__RESID"
+    If lVal = IDC_FINDUP Then sRet = "IDC_FINDUP"
+    If lVal = IDC_FINDUP_LabelTitle_RESID Then sRet = "IDC_FINDUP_LabelTitle_RESID"
+    If lVal = IDC_FINDUP_TooltipTitle_RESID Then sRet = "IDC_FINDUP_TooltipTitle_RESID"
+    If lVal = IDC_FINDUP_TooltipDescription_RESID Then sRet = "IDC_FINDUP_TooltipDescription_RESID"
+    If lVal = IDC_FINDUP_SmallImages_RESID Then sRet = "IDC_FINDUP_SmallImages_RESID"
+    If lVal = IDC_FINDUP_SmallImages_120__RESID Then sRet = "IDC_FINDUP_SmallImages_120__RESID"
+    If lVal = IDC_FINDUP_SmallImages_144__RESID Then sRet = "IDC_FINDUP_SmallImages_144__RESID"
+    If lVal = IDC_FINDUP_SmallImages_192__RESID Then sRet = "IDC_FINDUP_SmallImages_192__RESID"
+    If lVal = IDC_FINDCOMBO Then sRet = "IDC_FINDCOMBO"
+    If lVal = IDC_FINDCOMBO_LabelTitle_RESID Then sRet = "IDC_FINDCOMBO_LabelTitle_RESID"
     If lVal = IDC_REPLACE Then sRet = "IDC_REPLACE"
     If lVal = IDC_SELECTALL Then sRet = "IDC_SELECTALL"
     If lVal = cmdButtonsGroup Then sRet = "cmdButtonsGroup"
@@ -4282,12 +4689,6 @@ Class frmMain
         
         Case WM_NOTIFYFORMAT
             Return NFR_UNICODE
-          
-        Case WM_SETCURSOR
-            If hCurRE = 0 Then
-                hCurRE = LoadCursor(App.hInstance, ByVal IDC_IBEAM)
-                SetCursor hCurRE
-            End If
         
         Case WM_CONTEXTMENU
             Dim pt As POINT
@@ -4310,14 +4711,14 @@ Class frmMain
                     '     If mEnableCPD = True Then
                     '         pFramework.SetUICommandProperty(IDC_COPY, UI_PKEY_Enabled, CVar(False))
                     '         pFramework.SetUICommandProperty(IDC_CUT, UI_PKEY_Enabled, CVar(False))
-                    '         pFramework.SetUICommandProperty(IDC_DELETE, UI_PKEY_Enabled, CVar(False))
                     '         mEnableCPD = False
                     '     End If
                     ' End If
                     mEnableCPD = IsTextSelected()
                     pFramework.InvalidateUICommand(IDC_CUT, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
                     pFramework.InvalidateUICommand(IDC_COPY, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
-                    pFramework.InvalidateUICommand(IDC_DELETE, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
+                            pFramework.SetUICommandProperty(IDC_DELETE, UI_PKEY_Enabled, CVar(mEnableCPD))
+                    ' pFramework.InvalidateUICommand(IDC_DELETE, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
                     pFramework.FlushPendingInvalidations()
                 End If
                 Return S_OK
@@ -4351,6 +4752,8 @@ Class frmMain
                         mEnableCPD = IsTextSelected()
                         pFramework.InvalidateUICommand(IDC_CUT, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
                         pFramework.InvalidateUICommand(IDC_COPY, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
+                        pFramework.InvalidateUICommand(IDC_CMD_CHANGEPIC, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
+                        pFramework.InvalidateUICommand(IDC_CMD_RESIZEPIC, UI_INVALIDATIONS_PROPERTY, UI_PKEY_Enabled)
                         pFramework.FlushPendingInvalidations()
                     End If
                 End If
@@ -4556,7 +4959,9 @@ Class frmMain
     End If
     FRHookProc = CallNextHookEx(hHookFR, nCode, wParam, ByVal lParam)
     End Function
+ 
     
+
     
 
 #End Region
