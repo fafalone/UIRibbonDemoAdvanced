@@ -21,6 +21,14 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 Most stock versions of Windows 7 do not support color fonts, so while the Direct2D RichEdit will work, emojis won't be in color.
 
  ## Changelog
+(Version 4.1.4, 20 Feb 2025)\
+-There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the button when Context #1 is selected.\
+-Other resource IDs being identical to command ids caused names reported by the log to be  e.g. Command_LabelTitle_ResId instead of command. This is just cosmetic in the log, it didn't affect program operation.\
+-Set Galleries PictureBox HasDC to False to avoid visual glitching on Win7; same notes apply as with the form.\
+-Set As Ribbon Colors now skips items you didn't pick a color for.\
+-Cursor flickering fixed and performance improved by no longer forcing the I-beam on the WM_SETCURSOR message; I don't even recall why I was doing that.\
+-Inserting a picture on Win7 no longer takes over the clipboard. The new method also  replaces the EM_SETIMAGE way so the resize function can work; for some reason images inserted with EM_SETIMAGE aren't recognized as OLE objects by IRichEditOle. You can switch back by changing dbg_richedusesetimage to 1.\
+               
 (Version 4.0.3, 18 Feb 2025) Switched to alternate `RGBToHSB` algorithm from wqweto, since the original was overflowing in some cases.
               
 (Version 4.0.2, 18 Feb 2025) Minor adjustments to some string contents and build settings. No code or XML changes.
@@ -172,11 +180,16 @@ End If
 > [!NOTE]
 > Some of these features use the `EN_CHANGE` notification, and it's worth noting serious problems with the documentation for this. First, to receive it at all, you need to enable it by including `ENM_CHANGE` in the `EM_SETEVENTMASK` message. But then, you don't receive it through `WM_NOTIFY` as documented, you receive it through `WM_COMMAND`, and this is *not* the documented RichEdit version of `EN_CHANGE`, it's the standard edit control version: lParam contains a handle to the control, not a pointer to a `CHANGENOTIFY` type.
 
+
 ### Quick Access Toolbar images
 As was mentioned for the Scaling Policies, in some cases you may want to associate images with commands even when they're not shown by default. Adding groups and some  commands to the QAT is another one of those cases. In previous demos, you'd see a blank square in many cases. But now groups and commands have been updated to in all but a few cases have images associated with them in the QAT.
 
 ![image](https://github.com/user-attachments/assets/5b2a1194-678f-4def-a627-559b9790c2a3)
 
+### More powerful MiniToolBar
+The Intermediate Demo showed basic use of Context Popups, including a very simple MiniToolBar. But, the MiniToolBar can be a bit more powerful... this demo shows that one can contain a small FontControl and a ComboBox, and shows how the latter can be combined with a Find button and toggle button for search direction to allow interactive operations right from the popup:
+
+![image](https://github.com/user-attachments/assets/73fb7a49-fbb6-43c6-8d75-6ad2b00ce160)
 
 ### Multiple DPI options
 All new commands have images specified for different DPIs. This is done in the XML like this:
@@ -259,6 +272,8 @@ There's a lot of difficulty keeping this straight in the backend side. This demo
 - Color fonts support: This demo comes with a newer RichEdit version that's used in recent Microsoft Office versions and I believe the Windows 11 Notepad that supports color fonts, most commonly used for showing emojis in color. On Windows 10 and earlier, this is typically only available with Office installed, and then only in the same bitness of Office. But if you copy the Office riched20.dll and mtpls.dll, this can be used in your application by loading those DLLs then creating the RichEdit window with the 'RichEditD2D' window class. This demo includes both 32bit and 64bit versions and shows how to load them, or fall back to the regular system richedit options if they're not present. These DLLs are signed with verifiable Microsoft certificates.\
 This feature is optional. It can be disabled with the dbg_usenewrichedit option at the top of the main form, or by the absence of the required dlls. If disabled, it falls back to the standard system RichEdit (msftedit.dll if available, or the old riched20.dll in System32).
 
+- The Picture button/command shows two methods: The original Win7+ way using `IRichEditOle.InsertObject`, which allows the Resize and Change Picture buttons to now be functional, and disabled by default, but the original version used the Win8+ message `EM_INSERTIMAGE`, which for some reason isn't recognized as an embedded object.\
+![image](https://github.com/user-attachments/assets/885d0ad1-e96a-4dee-bc47-3f5fddbf22bc)
 
 - The New, Open, and Save/Save As buttons now work. In this demo only saving/loading Rich Text Format (.rtf) and plain text with Unicode encoding  (.txt) is supported,  so the Save As options for Office OpenXML/OpenDocument/Other Formats   don't have actions bound to them, you must pick the main button or the Rich Text or Plain Text buttons for Save As. This shows use of the `EM_STREAMIN` / `EM_STREAMOUT` / `EditStreamCallback` method of saving RTF.\
  Note: The demo doesn't currently track if the editor is 'dirty' i.e. changes have been made to an open document so a save prompt should be displayed.
