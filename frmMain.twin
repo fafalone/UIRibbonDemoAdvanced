@@ -3,12 +3,7 @@
 [PredeclaredId]
 Class frmMain
     Option Explicit
-    
-    'TODO TODO TODO
-    'HMtoPx/PxToHm update wdl and remove
-    'test minitoolbar find
-    'implement pic resize
-    
+ 
     'Demo developer options:
     'Enable interaction with the font control
     #Const dbg_enablefont = 1
@@ -39,9 +34,10 @@ Class frmMain
         Project repository: https://github.com/fafalone/UIRibbonDemoAdvanced (this project)
                             https://github.com/fafalone/UIRibbonDemos (earlier ribbon demos)
         License: MIT License, see LICENCE.md for more info.
-        Last updated: 20 Feb 2025 
+        Last updated: 08 Mar 2025 
         
         Changelog:
+        (Version 4.1.5, 08 Mar 2025) Bug fix: DoInsertPicture broken on Win7.
         (Version 4.1.4, 20 Feb 2025) 
               -There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the
                button when Context #1 is selected.
@@ -1057,6 +1053,7 @@ Class frmMain
         If (dwMajor = 6) And (dwMinor >= 2) Then Return True
     End Function
     
+    #Region "EventHandlers"
     Private Sub OnInitialize() Handles Form.Initialize
             mWin7 = CheckWin7OrHigher()
             mWin8 = CheckWin8OrHigher()
@@ -1073,7 +1070,6 @@ Class frmMain
             End If
     End Sub
     
-    #Region "EventHandlers"
     Private Sub OnLoad() Handles Form.Load
         If mWin7 = False Then
             MsgBox "This app is not supported on Windows versions before Windows 7", vbOKOnly Or vbCritical, App.Title
@@ -1237,8 +1233,8 @@ Class frmMain
             End If
     End Sub
     
-    Private Sub Text2_Change() Handles Text2.Change
-        If bAuto = False Then
+    Private Sub OnSizeDlgHeightBoxChange() Handles Text2.Change
+        If bAuto = False Then 'Don't respond to a change made in code to sync aspect ratio
             If Check1.Value = vbChecked Then 'lock ratio
                 bAuto = True
                 If Option1(0).Value = True Then
@@ -1250,7 +1246,7 @@ Class frmMain
             End If
         End If
     End Sub
-    Private Sub Text1_Change() Handles Text1.Change
+    Private Sub OnSizeDlgWidthBoxChange() Handles Text1.Change
         If bAuto = False Then
             If Check1.Value = vbChecked Then 'lock ratio
                 bAuto = True
@@ -1264,7 +1260,7 @@ Class frmMain
         End If
     End Sub
     
-    Private Sub Option1_Click(Index As Integer) Handles Option1.Click
+    Private Sub OnSizeDlgUnitChange(Index As Integer) Handles Option1.Click
         If Index = 0 Then
             Text1.Text = "50"
             Text2.Text = "50"
@@ -1274,7 +1270,7 @@ Class frmMain
         End If
     End Sub
     
-    Private Sub Command4_Click() Handles Command4.Click
+    Private Sub OnSizeDlgOk() Handles Command4.Click
         Dim tSZ As SIZE
         If Option1(0).Value = True Then
             tSZ.cx = mPicCX * (CLng(Text1.Text) / 100)
@@ -1286,24 +1282,24 @@ Class frmMain
         RichEdResizeImg(tSZ)
         Picture2.Visible = False
     End Sub
+    Private Sub OnSizeDlgCancel() Handles Command5.Click
+        Picture2.Visible = False
+    End Sub
      
-    Private Sub Picture2_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Picture2.MouseMove
+    Private Sub OnSizeDlgBkMouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Picture2.MouseMove
         If Button = 1 Then
             Call ReleaseCapture
             Call SendMessage(Picture2.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&)
         End If
     End Sub
  
-    Private Sub Label12_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Label12.MouseMove
+    Private Sub OnSizeDlgTitleBarMouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Label12.MouseMove
         If Button = 1 Then
             Call ReleaseCapture
             Call SendMessage(Picture2.hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0&)
         End If
     End Sub
     
-    Private Sub Command5_Click() Handles Command5.Click
-        Picture2.Visible = False
-    End Sub
     
     #End Region
     
@@ -2068,68 +2064,67 @@ Class frmMain
     
     Private Sub DoInsertPicture(Optional bChange As Boolean = False)
         On Error GoTo e0
-        
-        If mWin8 Or bD2DFound Then
-            Dim fso As New FileOpenDialog
-            Dim si As IShellItem
-            Dim lp As LongPtr
-            Dim sPic As String
-            Dim tFilt(0) As COMDLG_FILTERSPEC
-            tFilt(0).pszName = StrPtr("Supported image formats")
-            tFilt(0).pszSpec = StrPtr("*.bmp;*.gif;*.jpg;*.png")
-            With fso
-                .SetTitle "Insert picture..."
-                .SetOptions(FOS_FILEMUSTEXIST)
-                .SetFileTypes 1, VarPtr(tFilt(0))
-                On Error Resume Next
-                .Show Me.hWnd
-                .GetResult si
-                On Error GoTo e0
-            End With
-            If si IsNot Nothing Then
-                Dim sFile As String
-                If bChange Then
-                    SendMessage hRE, EM_REPLACESEL, CFALSE, ByVal StrPtr("")
-                End If
-                #If dbg_richedusesetimage = 0 Then
+ 
+        Dim fso As New FileOpenDialog
+        Dim si As IShellItem
+        Dim lp As LongPtr
+        Dim sPic As String
+        Dim tFilt(0) As COMDLG_FILTERSPEC
+        tFilt(0).pszName = StrPtr("Supported image formats")
+        tFilt(0).pszSpec = StrPtr("*.bmp;*.gif;*.jpg;*.png")
+        With fso
+            .SetTitle "Insert picture..."
+            .SetOptions(FOS_FILEMUSTEXIST)
+            .SetFileTypes 1, VarPtr(tFilt(0))
+            On Error Resume Next
+            .Show Me.hWnd
+            .GetResult si
+            On Error GoTo e0
+        End With
+        If si IsNot Nothing Then
+            Dim sFile As String
+            If bChange Then
+                SendMessage hRE, EM_REPLACESEL, CFALSE, ByVal StrPtr("")
+            End If
+            #If dbg_richedusesetimage = 0 Then
+            si.GetDisplayName(SIGDN_FILESYSPATH, lp)
+            sFile = LPWSTRtoStr(lp)
+            RichEdInsertBmpOld sFile, 0, 0
+            Exit Sub
+            #End If
+            If (mWin8 = False) And (bD2DFound = False) Then
                 si.GetDisplayName(SIGDN_FILESYSPATH, lp)
                 sFile = LPWSTRtoStr(lp)
                 RichEdInsertBmpOld sFile, 0, 0
                 Exit Sub
-                #End If
-                si.GetDisplayName(SIGDN_NORMALDISPLAY, lp)
-                sFile = LPWSTRtoStr(lp)
-                Dim cx As Long, cy As Long
-                Dim szPx As SIZE, szHm As SIZE
-                Dim si2 As IShellItem2
-                Set si2 = si
-                si2.GetUInt32 PKEY_Image_HorizontalSize, cx
-                si2.GetUInt32 PKEY_Image_VerticalSize, cy
-                If (cx = 0) Or (cy = 0) Then
-                    LogMsg "DoInsertPicture::Couldn't get image dimensions"
-                    Exit Sub
-                End If
-                szPx.cx = cx: szPx.cy = cy
-                PixelToHiMetric szPx, szHm
-                LogMsg "DoInsertPicture::szPx.cx=" & szPx.cx & ",szHm.cx=" & szHm.cx
-                
-                Dim pStm As IStream
-                si.BindToHandler 0, BHID_Stream, IID_IStream, pStm
-                If pStm Is Nothing Then
-                    LogMsg "DoInsertPicture::Couldn't get image stream"
-                    Exit Sub
-                End If
-                Dim tImg As RICHEDIT_IMAGE_PARAMETERS
-                tImg.xWidth = szHm.cx: tImg.yHeight = szHm.cy
-                Set tImg.pIStream = pStm
-                tImg.pwszAlternateText = StrPtr(sFile)
-                If hRE Then SendMessage hRE, EM_INSERTIMAGE, 0, tImg
             End If
-        Else
-            Dim sFile2 As String
-            si.GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, lp)
-            sFile2 = LPWSTRtoStr(lp)
-            RichEdInsertBmpOld sFile2, 0, 0
+            si.GetDisplayName(SIGDN_NORMALDISPLAY, lp)
+            sFile = LPWSTRtoStr(lp)
+            Dim cx As Long, cy As Long
+            Dim szPx As SIZE, szHm As SIZE
+            Dim si2 As IShellItem2
+            Set si2 = si
+            si2.GetUInt32 PKEY_Image_HorizontalSize, cx
+            si2.GetUInt32 PKEY_Image_VerticalSize, cy
+            If (cx = 0) Or (cy = 0) Then
+                LogMsg "DoInsertPicture::Couldn't get image dimensions"
+                Exit Sub
+            End If
+            szPx.cx = cx: szPx.cy = cy
+            PixelToHiMetric szPx, szHm
+            LogMsg "DoInsertPicture::szPx.cx=" & szPx.cx & ",szHm.cx=" & szHm.cx
+            
+            Dim pStm As IStream
+            si.BindToHandler 0, BHID_Stream, IID_IStream, pStm
+            If pStm Is Nothing Then
+                LogMsg "DoInsertPicture::Couldn't get image stream"
+                Exit Sub
+            End If
+            Dim tImg As RICHEDIT_IMAGE_PARAMETERS
+            tImg.xWidth = szHm.cx: tImg.yHeight = szHm.cy
+            Set tImg.pIStream = pStm
+            tImg.pwszAlternateText = StrPtr(sFile)
+            If hRE Then SendMessage hRE, EM_INSERTIMAGE, 0, tImg
         End If
         Exit Sub
         e0:
