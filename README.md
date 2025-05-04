@@ -21,6 +21,7 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 Most stock versions of Windows 7 do not support color fonts, so while the Direct2D RichEdit will work, emojis won't be in color.
 
  ## Changelog
+(Version 4.1.6, 04 May 2025) Bug fix: Public Consts in frmMain. tB may soon flag such errors. Also updated WinDevLib to latest.\
 (Version 4.1.5, 08 Mar 2025) Bug fix: DoInsertPicture broken on Win7.\
 (Version 4.1.4, 20 Feb 2025)\
 -There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the button when Context #1 is selected.\
