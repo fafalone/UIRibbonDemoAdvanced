@@ -11,11 +11,11 @@ This Advanced demo combines the Intermediate and Galleries demo, and builds on t
 This project was developed exclusively in twinBASIC; the code takes advantage of new language features wheverever beneficial. It is possible to backport these techniques to use the ribbon in VB6 via oleexp.tlb; the Intro project [has been backported](https://www.vbforums.com/showthread.php?t=900815) to provide a proof of concept and template of how to do it, but the Intermediate, Galleries, and Advanced Ribbon Demos will remain twinBASIC-only projects.
         
 ## Requirements
--The UI Ribbon is only available in Windows 7 or newer.\
--twinBASIC Beta 677 or newer is required.\
--To run from the IDE, restart the compiler and build the exe before running.\
--To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form `HasDC` property to  `False`. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives.\
--For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.
+- The UI Ribbon is only available in Windows 7 or newer. 
+- twinBASIC Beta 677 or newer is required. 
+- To run from the IDE, restart the compiler and build the exe before running. 
+- To avoid visual glitching on resizing the Form to larger sizes on Windows 10/11, set the Form `HasDC` property to  `False`. This will not affect anything else in 99% of apps, but see further details below or in the frmMain ReadMe for specifics and alternatives. 
+- For Color Font support (e.g. Color Emojis), the riched20.dll and mtpls.dll from Office 2021 or newer must be included in the same folder as the compiled exe. Signed official Microsoft DLLs for both 32 and 64 bit versions are included with this demo.  
 > [!IMPORTANT]
 > Some VMs like VirtualBox have broken Direct2D support so the new RichEdit DLL may crash. I'll investigate a way to check to avoid trying to load it in this case. In the mean time, if you need to use it on one of the affected VMs simply remove the DLLs from the exe folder or set `dbg_usenewrichedit` to 0.\
 Most stock versions of Windows 7 do not support color fonts, so while the Direct2D RichEdit will work, emojis won't be in color.
@@ -23,13 +23,13 @@ Most stock versions of Windows 7 do not support color fonts, so while the Direct
  ## Changelog
 (Version 4.1.6, 04 May 2025) Bug fix: Public Consts in frmMain. tB may soon flag such errors. Also updated WinDevLib to latest.\
 (Version 4.1.5, 08 Mar 2025) Bug fix: DoInsertPicture broken on Win7.\
-(Version 4.1.4, 20 Feb 2025)\
--There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the button when Context #1 is selected.\
--Other resource IDs being identical to command ids caused names reported by the log to be  e.g. Command_LabelTitle_ResId instead of command. This is just cosmetic in the log, it didn't affect program operation.\
--Set Galleries PictureBox HasDC to False to avoid visual glitching on Win7; same notes apply as with the form.\
--Set As Ribbon Colors now skips items you didn't pick a color for.\
--Cursor flickering fixed and performance improved by no longer forcing the I-beam on the WM_SETCURSOR message; I don't even recall why I was doing that.\
--Inserting a picture on Win7 no longer takes over the clipboard. The new method also  replaces the EM_SETIMAGE way so the resize function can work; for some reason images inserted with EM_SETIMAGE aren't recognized as OLE objects by IRichEditOle. You can switch back by changing dbg_richedusesetimage to 1.\
+(Version 4.1.4, 20 Feb 2025) 
+- There's a new, more complex MiniToolbar that pops up on RichEdit right click or from the button when Context #1 is selected. 
+- Other resource IDs being identical to command ids caused names reported by the log to be  e.g. Command_LabelTitle_ResId instead of command. This is just cosmetic in the log, it didn't affect program operation. 
+- Set Galleries PictureBox HasDC to False to avoid visual glitching on Win7; same notes apply as with the form. 
+- Set As Ribbon Colors now skips items you didn't pick a color for. 
+- Cursor flickering fixed and performance improved by no longer forcing the I-beam on the WM_SETCURSOR message; I don't even recall why I was doing that. 
+- Inserting a picture on Win7 no longer takes over the clipboard. The new method also  replaces the EM_SETIMAGE way so the resize function can work; for some reason images inserted with EM_SETIMAGE aren't recognized as OLE objects by IRichEditOle. You can switch back by changing dbg_richedusesetimage to 1. 
                
 (Version 4.0.3, 18 Feb 2025) Switched to alternate `RGBToHSB` algorithm from wqweto, since the original was overflowing in some cases.
               
