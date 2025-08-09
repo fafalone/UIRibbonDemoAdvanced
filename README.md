@@ -14,7 +14,7 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 Version 4.2.7 adds support for Dark Mode:\
 <img width="938" height="144" alt="image" src="https://github.com/user-attachments/assets/3187b630-ea04-466e-8c6b-57c25f43ce4e" />
 
-It's all handled automatically by a very simple property toggle. The key is undocumented, thanks to https://github.com/stefankueng/BowPad for the method.
+It's all handled automatically by a very simple property toggle that's been added to the RibbonHelper module. The key is undocumented, thanks to https://github.com/stefankueng/BowPad for the method.
 
 ```vba
     Public Function SetRibbonDarkMode(ByVal fDark As Boolean) As Long 
