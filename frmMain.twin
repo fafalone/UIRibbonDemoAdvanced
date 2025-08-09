@@ -34,9 +34,10 @@ Class frmMain
         Project repository: https://github.com/fafalone/UIRibbonDemoAdvanced (this project)
                             https://github.com/fafalone/UIRibbonDemos (earlier ribbon demos)
         License: MIT License, see LICENCE.md for more info.
-        Last updated: 04 May 2025 
+        Last updated: 09 Aug 2025
         
         Changelog:
+        (Version 4.2.7, 09 Aug 2025) Added Dark Mode toggle for Ribbon. WinDevLib is now linked instead of embedded.
         (Version 4.1.6, 04 May 2025) Bug fix: Public Consts in frmMain. tB may soon flag such errors.
         (Version 4.1.5, 08 Mar 2025) Bug fix: DoInsertPicture broken on Win7.
         (Version 4.1.4, 20 Feb 2025) 
@@ -321,6 +322,8 @@ Class frmMain
         RibbonModeBoth
     End Enum
     Private mRibbonMode As eRibbonModes
+    
+    Private mDarkMode As Boolean
     
     Private Enum RtfStreamOp
         rsoUnk
@@ -1300,6 +1303,17 @@ Class frmMain
     Private Sub OnSizeDlgCancel() Handles Command5.Click
         Picture2.Visible = False
     End Sub
+    
+    Private Sub OnToggleDarkMode() Handles Command6.Click
+        If mDarkMode Then
+            mDarkMode = False
+        Else
+            mDarkMode = True
+        End If
+        SetRibbonDarkMode(mDarkMode)
+    End Sub
+ 
+    
      
     Private Sub OnSizeDlgBkMouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single) Handles Picture2.MouseMove
         If Button = 1 Then
@@ -5012,8 +5026,8 @@ Class frmMain
     End If
     FRHookProc = CallNextHookEx(hHookFR, nCode, wParam, ByVal lParam)
     End Function
- 
     
+ 
 
     
 

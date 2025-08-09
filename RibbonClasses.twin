@@ -5,7 +5,7 @@
         
         Author: Jon Johnson (fafalone)
         Project repository: https://github.com/fafalone/UIRibbonDemos
-        Last updated: 18 Feb 2025 :: Includes all classes for all demos and additional helpers.
+        Last updated: 09 Aug 2025 :: Includes all classes for all demos and additional helpers.
     */
  
 Module RibbonHelpers
@@ -39,6 +39,20 @@ Module RibbonHelpers
             Set pStore = lpFramework
             pStore.GetValue(UI_PKEY_Viewable, bVal)
             Return bVal
+        End If
+    End Function
+    Public Function SetRibbonDarkMode(ByVal fDark As Boolean) As Long
+        'Thanks to https://github.com/stefankueng/BowPad for this technique
+        On Error Resume Next
+        If pFramework Is Nothing Then Return E_FAIL
+        Dim ps As IPropertyStore
+        Set ps = pFramework
+        If ps IsNot Nothing Then
+            Dim pvDark As Variant
+            InitPropVariantFromBoolean If(fDark, CTRUE, CFALSE), pvDark
+            ps.SetValue(UI_PKEY_DarkModeRibbon, pvDark)
+            ps.Commit()
+            Return Err.LastHresult
         End If
     End Function
     Public Function SetRibbonColors(ByVal pFramework As IUIFramework, ByVal clrBackground As OLE_COLOR, ByVal clrText As OLE_COLOR, ByVal clrHighlight As OLE_COLOR) As Long
