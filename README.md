@@ -9,7 +9,28 @@ If you're not already familiar with the basics, you'll want to see the Introduct
 This Advanced demo combines the Intermediate and Galleries demo, and builds on those to cover almost all of the remaining features of the ribbon, and a number of bonus features related to the operation of the RichEdit control so that almost all of the related buttons work. 
 
 This project was developed exclusively in twinBASIC; the code takes advantage of new language features wheverever beneficial. It is possible to backport these techniques to use the ribbon in VB6 via oleexp.tlb; the Intro project [has been backported](https://www.vbforums.com/showthread.php?t=900815) to provide a proof of concept and template of how to do it, but the Intermediate, Galleries, and Advanced Ribbon Demos will remain twinBASIC-only projects.
-        
+
+## UPDATE! 09 Aug 2025
+Version 4.2.7 adds support for Dark Mode:\
+<img width="938" height="144" alt="image" src="https://github.com/user-attachments/assets/3187b630-ea04-466e-8c6b-57c25f43ce4e" />
+
+It's all handled automatically by a very simple property toggle. They key is undocumented, thanks to https://github.com/stefankueng/BowPad for the method.
+
+```vba
+    Public Function SetRibbonDarkMode(ByVal fDark As Boolean) As Long 
+ ...
+        Dim ps As IPropertyStore
+        Set ps = pFramework
+        If ps IsNot Nothing Then
+            Dim pvDark As Variant
+            InitPropVariantFromBoolean If(fDark, CTRUE, CFALSE), pvDark
+            ps.SetValue(UI_PKEY_DarkModeRibbon, pvDark)
+            ps.Commit()
+            Return Err.LastHresult
+        End If
+    End Function
+```
+
 ## Requirements
 - The UI Ribbon is only available in Windows 7 or newer. 
 - twinBASIC Beta 677 or newer is required. 
@@ -21,6 +42,7 @@ This project was developed exclusively in twinBASIC; the code takes advantage of
 Most stock versions of Windows 7 do not support color fonts, so while the Direct2D RichEdit will work, emojis won't be in color.
 
  ## Changelog
+(Version 4.2.7, 09 Aug 2025) Added Dark Mode toggle for Ribbon. WinDevLib is now linked instead of embedded.\
 (Version 4.1.6, 04 May 2025) Bug fix: Public Consts in frmMain. tB may soon flag such errors. Also updated WinDevLib to latest.\
 (Version 4.1.5, 08 Mar 2025) Bug fix: DoInsertPicture broken on Win7.\
 (Version 4.1.4, 20 Feb 2025) 
